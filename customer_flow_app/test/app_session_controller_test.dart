@@ -22,7 +22,7 @@ void main() {
       auth.dispose();
     });
 
-    test('sends an authenticated returning user to home', () {
+    test('sends an authenticated returning user to the role gate', () {
       final auth = _FakeAuthRepository(
         currentUser: const AppUser(id: '1', email: 'customer@example.com'),
       );
@@ -32,7 +32,7 @@ void main() {
         onboardingRepository: onboarding,
       );
 
-      expect(controller.destinationAfterSplash, '/home');
+      expect(controller.destinationAfterSplash, '/gate');
 
       controller.dispose();
       auth.dispose();
