@@ -80,6 +80,8 @@ abstract final class In {
     LanguageKeys.findServiceDescription:
         'Pilih tenaga profesional untuk membantu kebutuhan rumah Anda.',
     LanguageKeys.reloadCategories: 'Muat ulang kategori',
+    LanguageKeys.reloadServices: 'Muat ulang layanan',
+    LanguageKeys.serviceLoadFailed: 'Daftar layanan gagal dimuat.',
     LanguageKeys.serviceNotFound: 'Layanan tidak ditemukan.',
     LanguageKeys.startingAt: 'Mulai {price}',
     LanguageKeys.serviceDetail: 'Detail layanan',

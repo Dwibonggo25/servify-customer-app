@@ -78,6 +78,8 @@ abstract final class En {
     LanguageKeys.findServiceDescription:
         'Choose a professional to help with your household needs.',
     LanguageKeys.reloadCategories: 'Reload categories',
+    LanguageKeys.reloadServices: 'Reload services',
+    LanguageKeys.serviceLoadFailed: 'Failed to load services.',
     LanguageKeys.serviceNotFound: 'No services found.',
     LanguageKeys.startingAt: 'From {price}',
     LanguageKeys.serviceDetail: 'Service details',

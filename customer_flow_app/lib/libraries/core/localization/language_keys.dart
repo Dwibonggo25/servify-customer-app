@@ -71,6 +71,8 @@ abstract final class LanguageKeys {
   static const findService = 'find_service';
   static const findServiceDescription = 'find_service_description';
   static const reloadCategories = 'reload_categories';
+  static const reloadServices = 'reload_services';
+  static const serviceLoadFailed = 'service_load_failed';
   static const serviceNotFound = 'service_not_found';
   static const startingAt = 'starting_at';
   static const serviceDetail = 'service_detail';

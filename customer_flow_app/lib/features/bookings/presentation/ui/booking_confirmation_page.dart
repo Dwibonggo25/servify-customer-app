@@ -6,12 +6,12 @@ import '../../../../libraries/core/localization/app_localizations.dart';
 import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
 import '../../../../libraries/design_system/widgets/app_button.dart';
-import '../../domain/entities/booking_draft.dart';
+import '../../domain/entities/booking_record.dart';
 
 final class BookingConfirmationPage extends StatelessWidget {
   const BookingConfirmationPage({required this.booking, super.key});
 
-  final BookingDraft booking;
+  final BookingRecord booking;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ final class BookingConfirmationPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
         children: [
-          const _SuccessHeader(),
+          _SuccessHeader(number: booking.number),
           const SizedBox(height: 24),
           _SummaryCard(booking: booking),
           const SizedBox(height: 16),
@@ -51,7 +51,7 @@ final class BookingConfirmationPage extends StatelessWidget {
           AppButton(
             label: context.tr(LanguageKeys.viewOrderHistory),
             icon: Icons.receipt_long_rounded,
-            onPressed: () => context.go('/orders', extra: booking),
+            onPressed: () => context.go('/orders'),
           ),
           const SizedBox(height: 10),
           AppButton(
@@ -66,7 +66,9 @@ final class BookingConfirmationPage extends StatelessWidget {
 }
 
 final class _SuccessHeader extends StatelessWidget {
-  const _SuccessHeader();
+  const _SuccessHeader({required this.number});
+
+  final String number;
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +97,7 @@ final class _SuccessHeader extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          context.tr(LanguageKeys.orderNumber, {'number': 'SRV-2026-001'}),
+          context.tr(LanguageKeys.orderNumber, {'number': number}),
           style: const TextStyle(color: AppColors.textSecondary),
         ),
       ],
@@ -106,7 +108,7 @@ final class _SuccessHeader extends StatelessWidget {
 final class _SummaryCard extends StatelessWidget {
   const _SummaryCard({required this.booking});
 
-  final BookingDraft booking;
+  final BookingRecord booking;
 
   @override
   Widget build(BuildContext context) {
@@ -128,15 +130,14 @@ final class _SummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           _SummaryRow(
-            icon: booking.service.icon,
+            icon: booking.icon,
             label: context.tr(LanguageKeys.service),
-            value: booking.service.name,
+            value: booking.serviceName,
           ),
           _SummaryRow(
             icon: Icons.calendar_month_outlined,
             label: context.tr(LanguageKeys.schedule),
-            value:
-                '${AppFormatters.date(booking.schedule)}, ${booking.timeLabel}',
+            value: AppFormatters.date(booking.scheduledAt),
           ),
           _SummaryRow(
             icon: Icons.location_on_outlined,
@@ -157,7 +158,7 @@ final class _SummaryCard extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
               Text(
-                AppFormatters.rupiah(booking.service.price),
+                AppFormatters.rupiah(booking.totalAmount),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w800,

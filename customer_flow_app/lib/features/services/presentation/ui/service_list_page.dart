@@ -6,8 +6,9 @@ import '../../../../libraries/core/formatters/app_formatters.dart';
 import '../../../../libraries/core/localization/app_localizations.dart';
 import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
-import '../../data/mock_service_catalog.dart';
 import '../../domain/entities/service_item.dart';
+import '../cubit/service_catalog_cubit.dart';
+import '../cubit/service_catalog_state.dart';
 import '../cubit/service_category_cubit.dart';
 import '../cubit/service_category_state.dart';
 
@@ -31,9 +32,12 @@ final class _ServiceListPageState extends State<ServiceListPage> {
     _category = widget.initialCategory ?? _allCategory;
   }
 
-  List<ServiceItem> _filteredServices(String category) {
+  List<ServiceItem> _filteredServices(
+    List<ServiceItem> services,
+    String category,
+  ) {
     final normalizedQuery = _query.trim().toLowerCase();
-    return MockServiceCatalog.services.where((service) {
+    return services.where((service) {
       final matchesCategory =
           category == _allCategory || service.category == category;
       final matchesQuery =
@@ -48,83 +52,138 @@ final class _ServiceListPageState extends State<ServiceListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(context.tr(LanguageKeys.serviceList))),
-      body: BlocBuilder<ServiceCategoryCubit, ServiceCategoryState>(
-        builder: (context, categoryState) {
-          final categories = [
-            _allCategory,
-            ...categoryState.categories.map((category) => category.name),
-          ];
-          final selectedCategory = categories.contains(_category)
-              ? _category
-              : _allCategory;
-          final services = _filteredServices(selectedCategory);
+      body: BlocBuilder<ServiceCatalogCubit, ServiceCatalogState>(
+        builder: (context, serviceState) {
+          if (serviceState.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (serviceState.status == ServiceCatalogStatus.failure) {
+            return _ServiceLoadError(
+              message:
+                  serviceState.message ??
+                  context.tr(LanguageKeys.serviceLoadFailed),
+              onRetry: () => context.read<ServiceCatalogCubit>().load(),
+            );
+          }
 
-          return CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr(LanguageKeys.findService),
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.w800),
+          return BlocBuilder<ServiceCategoryCubit, ServiceCategoryState>(
+            builder: (context, categoryState) {
+              final categories = [
+                _allCategory,
+                ...categoryState.categories.map((category) => category.name),
+              ];
+              final selectedCategory = categories.contains(_category)
+                  ? _category
+                  : _allCategory;
+              final services = _filteredServices(
+                serviceState.services,
+                selectedCategory,
+              );
+
+              return CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.tr(LanguageKeys.findService),
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w800),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            context.tr(LanguageKeys.findServiceDescription),
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          TextField(
+                            onChanged: (value) =>
+                                setState(() => _query = value),
+                            decoration: InputDecoration(
+                              hintText: context.tr(LanguageKeys.searchService),
+                              prefixIcon: const Icon(Icons.search_rounded),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _CategoryFilters(
+                            state: categoryState,
+                            categories: categories,
+                            selectedCategory: selectedCategory,
+                            onSelected: (category) =>
+                                setState(() => _category = category),
+                            onRetry: () =>
+                                context.read<ServiceCategoryCubit>().load(),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        context.tr(LanguageKeys.findServiceDescription),
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          height: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        onChanged: (value) => setState(() => _query = value),
-                        decoration: InputDecoration(
-                          hintText: context.tr(LanguageKeys.searchService),
-                          prefixIcon: const Icon(Icons.search_rounded),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _CategoryFilters(
-                        state: categoryState,
-                        categories: categories,
-                        selectedCategory: selectedCategory,
-                        onSelected: (category) =>
-                            setState(() => _category = category),
-                        onRetry: () =>
-                            context.read<ServiceCategoryCubit>().load(),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-              if (services.isEmpty)
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _EmptyServiceState(),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-                  sliver: SliverList.separated(
-                    itemCount: services.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final service = services[index];
-                      return _ServiceListTile(
-                        service: service,
-                        onTap: () => context.push('/services/${service.id}'),
-                      );
-                    },
-                  ),
-                ),
-            ],
+                  if (services.isEmpty)
+                    const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _EmptyServiceState(),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                      sliver: SliverList.separated(
+                        itemCount: services.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final service = services[index];
+                          return _ServiceListTile(
+                            service: service,
+                            onTap: () =>
+                                context.push('/services/${service.id}'),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              );
+            },
           );
         },
+      ),
+    );
+  }
+}
+
+final class _ServiceLoadError extends StatelessWidget {
+  const _ServiceLoadError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.cloud_off_rounded,
+              size: 52,
+              color: AppColors.textSecondary,
+            ),
+            const SizedBox(height: 14),
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(context.tr(LanguageKeys.reloadServices)),
+            ),
+          ],
+        ),
       ),
     );
   }

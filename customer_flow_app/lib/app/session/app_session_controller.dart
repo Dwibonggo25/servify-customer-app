@@ -33,7 +33,7 @@ final class AppSessionController extends ChangeNotifier {
 
   String get destinationAfterSplash {
     if (!_onboardingCompleted) return '/onboarding';
-    return isAuthenticated ? '/home' : '/login';
+    return isAuthenticated ? '/gate' : '/login';
   }
 
   Future<void> completeOnboarding() async {

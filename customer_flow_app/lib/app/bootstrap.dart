@@ -3,9 +3,12 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/auth/data/repositories/supabase_auth_repository.dart';
+import '../features/bookings/data/repositories/supabase_booking_repository.dart';
+import '../features/notifications/data/repositories/supabase_notification_repository.dart';
 import '../features/onboarding/data/repositories/hive_onboarding_repository.dart';
 import '../features/profile/data/repositories/supabase_profile_repository.dart';
 import '../features/services/data/repositories/supabase_service_category_repository.dart';
+import '../features/services/data/repositories/supabase_service_repository.dart';
 import '../libraries/core/config/app_config.dart';
 import '../libraries/core/constants/app_constants.dart';
 import '../libraries/core/localization/language_controller.dart';
@@ -33,10 +36,15 @@ Future<void> bootstrap(Flavor flavor) async {
   );
 
   final authRepository = SupabaseAuthRepository(Supabase.instance.client);
+  final bookingRepository = SupabaseBookingRepository(Supabase.instance.client);
+  final notificationRepository = SupabaseNotificationRepository(
+    Supabase.instance.client,
+  );
   final profileRepository = SupabaseProfileRepository(Supabase.instance.client);
   final serviceCategoryRepository = SupabaseServiceCategoryRepository(
     Supabase.instance.client,
   );
+  final serviceRepository = SupabaseServiceRepository(Supabase.instance.client);
   final onboardingRepository = HiveOnboardingRepository(settingsBox);
   final sessionController = AppSessionController(
     authRepository: authRepository,
@@ -45,8 +53,11 @@ Future<void> bootstrap(Flavor flavor) async {
   final appRouter = AppRouter(
     sessionController: sessionController,
     authRepository: authRepository,
+    bookingRepository: bookingRepository,
+    notificationRepository: notificationRepository,
     profileRepository: profileRepository,
     serviceCategoryRepository: serviceCategoryRepository,
+    serviceRepository: serviceRepository,
   );
 
   runApp(CustomerFlowApp(appRouter: appRouter));

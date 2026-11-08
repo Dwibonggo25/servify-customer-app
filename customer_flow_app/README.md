@@ -39,6 +39,24 @@ Supabase user metadata.
 
 5. In Supabase Authentication, enable Email authentication. Decide whether
    email confirmation is required for your development environment.
+6. Jalankan semua file pada `supabase/migrations` secara berurutan melalui
+   Supabase SQL Editor. Migration `20261104_004` menambahkan workflow staff,
+   notifikasi, RLS, serta RPC untuk menerima pesanan dan memperbarui status.
+
+Untuk menjadikan akun yang sudah terdaftar sebagai staff, jalankan query ini
+sebagai pemilik project (ganti emailnya):
+
+```sql
+update public.profiles
+set role = 'staff'
+where id = (
+  select id from auth.users where email = 'staff@example.com'
+);
+```
+
+Setelah login ulang, aplikasi membaca role dari `profiles` dan mengarahkan
+akun ke staff dashboard. Registrasi dari aplikasi tetap selalu membuat akun
+customer sehingga pengguna tidak dapat menaikkan role-nya sendiri.
 
 `config/dev.json` is ignored by Git. Never commit a service-role key to a
 Flutter application. A publishable/anon key is the correct client key.

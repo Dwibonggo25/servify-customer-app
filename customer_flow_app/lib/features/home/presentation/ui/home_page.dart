@@ -44,7 +44,7 @@ final class HomePage extends StatelessWidget {
           actions: [
             IconButton(
               tooltip: context.tr(LanguageKeys.notifications),
-              onPressed: () {},
+              onPressed: () => context.push('/notifications'),
               icon: const Icon(Icons.notifications_none_rounded),
             ),
             PopupMenuButton<String>(

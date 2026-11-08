@@ -9,15 +9,18 @@ import '../../../../libraries/design_system/widgets/app_button.dart';
 import '../../../../libraries/design_system/widgets/app_text_field.dart';
 import '../../../services/domain/entities/service_item.dart';
 import '../../domain/entities/booking_draft.dart';
+import '../../domain/repositories/booking_repository.dart';
 
 final class BookingFormPage extends StatefulWidget {
   const BookingFormPage({
     required this.service,
+    required this.bookingRepository,
     this.initialCustomerName = '',
     super.key,
   });
 
   final ServiceItem service;
+  final BookingRepository bookingRepository;
   final String initialCustomerName;
 
   @override
@@ -34,6 +37,7 @@ final class _BookingFormPageState extends State<BookingFormPage> {
   DateTime? _selectedDate;
   String _selectedTime = '09.00';
   String _paymentMethod = 'cash';
+  bool _submitting = false;
 
   static const _timeOptions = ['09.00', '11.00', '13.00', '15.00', '17.00'];
   static const _paymentOptions = ['cash', 'bank_transfer', 'e_wallet'];
@@ -195,6 +199,7 @@ final class _BookingFormPageState extends State<BookingFormPage> {
           color: AppColors.surface,
           child: AppButton(
             label: context.tr(LanguageKeys.reviewOrder),
+            isLoading: _submitting,
             onPressed: _submit,
           ),
         ),
@@ -228,7 +233,7 @@ final class _BookingFormPageState extends State<BookingFormPage> {
     if (date != null && mounted) setState(() => _selectedDate = date);
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final valid = _formKey.currentState?.validate() ?? false;
     if (!valid) return;
     if (_selectedDate == null) {
@@ -248,7 +253,21 @@ final class _BookingFormPageState extends State<BookingFormPage> {
       paymentMethod: _paymentMethod,
       note: _noteController.text.trim(),
     );
-    context.push('/booking/confirmation', extra: booking);
+    setState(() => _submitting = true);
+    try {
+      final record = await widget.bookingRepository.createBooking(booking);
+      if (mounted) {
+        context.pushReplacement('/booking/confirmation', extra: record);
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Pesanan gagal dibuat: $error')));
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 }
 
