@@ -44,9 +44,12 @@ final class _StaffProfilePageState extends State<StaffProfilePage> {
         if (snapshot.hasError || !snapshot.hasData) {
           return Center(
             child: FilledButton(
-              onPressed: () => setState(
-                () => _future = widget.profileRepository.getProfile(),
-              ),
+              onPressed: () {
+                final nextLoad = widget.profileRepository.getProfile();
+                setState(() {
+                  _future = nextLoad;
+                });
+              },
               child: const Text('Coba lagi'),
             ),
           );

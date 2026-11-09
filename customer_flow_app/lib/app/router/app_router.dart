@@ -3,16 +3,27 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/admin/presentation/bloc/admin_service_bloc.dart';
+import '../../features/admin/presentation/bloc/admin_service_event.dart';
+import '../../features/admin/presentation/bloc/admin_service_form_bloc.dart';
+import '../../features/admin/presentation/bloc/admin_service_form_event.dart';
+import '../../features/admin/presentation/ui/admin_service_management_page.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/ui/login_page.dart';
 import '../../features/auth/presentation/ui/register_page.dart';
 import '../../features/auth/presentation/ui/role_gate_page.dart';
 import '../../features/bookings/domain/entities/booking_record.dart';
 import '../../features/bookings/domain/repositories/booking_repository.dart';
+import '../../features/bookings/presentation/bloc/booking_form_bloc.dart';
+import '../../features/bookings/presentation/bloc/booking_detail_bloc.dart';
+import '../../features/bookings/presentation/bloc/booking_detail_event.dart';
 import '../../features/bookings/presentation/ui/booking_confirmation_page.dart';
 import '../../features/bookings/presentation/ui/booking_detail_page.dart';
 import '../../features/bookings/presentation/ui/booking_form_page.dart';
 import '../../features/bookings/presentation/ui/booking_history_page.dart';
+import '../../features/favorites/domain/repositories/favorite_repository.dart';
+import '../../features/favorites/presentation/cubit/favorite_cubit.dart';
+import '../../features/favorites/presentation/ui/favorite_page.dart';
 import '../../features/home/presentation/ui/home_page.dart';
 import '../../features/notifications/domain/repositories/notification_repository.dart';
 import '../../features/notifications/presentation/ui/notification_page.dart';
@@ -37,6 +48,7 @@ final class AppRouter {
     required AppSessionController sessionController,
     required AuthRepository authRepository,
     required BookingRepository bookingRepository,
+    required FavoriteRepository favoriteRepository,
     required NotificationRepository notificationRepository,
     required ProfileRepository profileRepository,
     required ServiceCategoryRepository serviceCategoryRepository,
@@ -54,7 +66,7 @@ final class AppRouter {
            }
 
            if (location == '/onboarding') {
-             return sessionController.isAuthenticated ? '/home' : '/login';
+             return sessionController.isAuthenticated ? '/gate' : '/login';
            }
 
            final isAuthRoute = location == '/login' || location == '/register';
@@ -97,22 +109,73 @@ final class AppRouter {
                  RoleGatePage(profileRepository: profileRepository),
            ),
            GoRoute(
+             path: '/admin',
+             pageBuilder: (context, state) => NoTransitionPage(
+               key: state.pageKey,
+               child: MultiBlocProvider(
+                 providers: [
+                   BlocProvider(
+                     create: (_) => ProfileCubit(profileRepository)..load(),
+                   ),
+                   BlocProvider(create: (_) => AuthBloc(authRepository)),
+                   BlocProvider(
+                     create: (_) =>
+                         AdminServiceBloc(serviceRepository)
+                           ..add(const AdminServicesRequested()),
+                   ),
+                 ],
+                 child: const AdminServiceManagementPage(),
+               ),
+             ),
+           ),
+           GoRoute(
+             path: '/admin/services/new',
+             builder: (context, state) => BlocProvider(
+               create: (_) => AdminServiceFormBloc(
+                 serviceRepository: serviceRepository,
+                 categoryRepository: serviceCategoryRepository,
+               )..add(const AdminServiceFormStarted()),
+               child: const AdminServiceFormPage(),
+             ),
+           ),
+           GoRoute(
+             path: '/admin/services/:serviceId/edit',
+             builder: (context, state) => BlocProvider(
+               create: (_) => AdminServiceFormBloc(
+                 serviceRepository: serviceRepository,
+                 categoryRepository: serviceCategoryRepository,
+               )..add(const AdminServiceFormStarted()),
+               child: AdminServiceFormPage(
+                 service: state.extra is ServiceItem
+                     ? state.extra! as ServiceItem
+                     : null,
+               ),
+             ),
+           ),
+           GoRoute(
              path: '/home',
-             builder: (context, state) => MultiBlocProvider(
-               providers: [
-                 BlocProvider(create: (_) => AuthBloc(authRepository)),
-                 BlocProvider(
-                   create: (_) =>
-                       ServiceCategoryCubit(serviceCategoryRepository)..load(),
-                 ),
-               ],
-               child: HomePage(sessionController: sessionController),
+             pageBuilder: (context, state) => NoTransitionPage(
+               key: state.pageKey,
+               child: MultiBlocProvider(
+                 providers: [
+                   BlocProvider(create: (_) => AuthBloc(authRepository)),
+                   BlocProvider(
+                     create: (_) =>
+                         ServiceCategoryCubit(serviceCategoryRepository)
+                           ..load(),
+                   ),
+                 ],
+                 child: HomePage(sessionController: sessionController),
+               ),
              ),
            ),
            GoRoute(
              path: '/services',
              builder: (context, state) => MultiBlocProvider(
                providers: [
+                 BlocProvider(
+                   create: (_) => FavoriteCubit(favoriteRepository)..load(),
+                 ),
                  BlocProvider(
                    create: (_) =>
                        ServiceCategoryCubit(serviceCategoryRepository)..load(),
@@ -134,7 +197,10 @@ final class AppRouter {
                return _ServiceLoaderPage(
                  serviceId: serviceId,
                  serviceRepository: serviceRepository,
-                 builder: (service) => ServiceDetailPage(service: service),
+                 builder: (service) => BlocProvider(
+                   create: (_) => FavoriteCubit(favoriteRepository)..load(),
+                   child: ServiceDetailPage(service: service),
+                 ),
                );
              },
            ),
@@ -145,11 +211,13 @@ final class AppRouter {
                return _ServiceLoaderPage(
                  serviceId: serviceId,
                  serviceRepository: serviceRepository,
-                 builder: (service) => BookingFormPage(
-                   service: service,
-                   bookingRepository: bookingRepository,
-                   initialCustomerName:
-                       sessionController.currentUser?.fullName ?? '',
+                 builder: (service) => BlocProvider(
+                   create: (_) => BookingFormBloc(bookingRepository),
+                   child: BookingFormPage(
+                     service: service,
+                     initialCustomerName:
+                         sessionController.currentUser?.fullName ?? '',
+                   ),
                  ),
                );
              },
@@ -164,15 +232,39 @@ final class AppRouter {
              },
            ),
            GoRoute(
+             path: '/favorites',
+             pageBuilder: (context, state) => NoTransitionPage(
+               key: state.pageKey,
+               child: MultiBlocProvider(
+                 providers: [
+                   BlocProvider(
+                     create: (_) => FavoriteCubit(favoriteRepository)..load(),
+                   ),
+                   BlocProvider(
+                     create: (_) =>
+                         ServiceCatalogCubit(serviceRepository)..load(),
+                   ),
+                 ],
+                 child: const FavoritePage(),
+               ),
+             ),
+           ),
+           GoRoute(
              path: '/orders',
-             builder: (context, state) =>
-                 BookingHistoryPage(repository: bookingRepository),
+             pageBuilder: (context, state) => NoTransitionPage(
+               key: state.pageKey,
+               child: BookingHistoryPage(repository: bookingRepository),
+             ),
            ),
            GoRoute(
              path: '/orders/:bookingId',
-             builder: (context, state) => BookingDetailPage(
-               bookingId: state.pathParameters['bookingId'] ?? '',
-               repository: bookingRepository,
+             builder: (context, state) => BlocProvider(
+               create: (_) => BookingDetailBloc(
+                 repository: bookingRepository,
+                 bookingId: state.pathParameters['bookingId'] ?? '',
+                 staffMode: false,
+               )..add(const BookingDetailRequested()),
+               child: const BookingDetailPage(),
              ),
            ),
            GoRoute(
@@ -184,41 +276,55 @@ final class AppRouter {
            ),
            GoRoute(
              path: '/profile',
-             builder: (context, state) => MultiBlocProvider(
-               providers: [
-                 BlocProvider(
-                   create: (_) => ProfileCubit(profileRepository)..load(),
-                 ),
-                 BlocProvider(create: (_) => AuthBloc(authRepository)),
-               ],
-               child: const ProfilePage(),
+             pageBuilder: (context, state) => NoTransitionPage(
+               key: state.pageKey,
+               child: MultiBlocProvider(
+                 providers: [
+                   BlocProvider(
+                     create: (_) => ProfileCubit(profileRepository)..load(),
+                   ),
+                   BlocProvider(create: (_) => AuthBloc(authRepository)),
+                 ],
+                 child: const ProfilePage(),
+               ),
              ),
            ),
            GoRoute(
              path: '/staff',
-             builder: (context, state) =>
-                 StaffDashboardPage(repository: bookingRepository),
+             pageBuilder: (context, state) => NoTransitionPage(
+               key: state.pageKey,
+               child: StaffDashboardPage(repository: bookingRepository),
+             ),
            ),
            GoRoute(
              path: '/staff/incoming',
-             builder: (context, state) => StaffBookingListPage(
-               repository: bookingRepository,
-               historyMode: false,
+             pageBuilder: (context, state) => NoTransitionPage(
+               key: state.pageKey,
+               child: StaffBookingListPage(
+                 repository: bookingRepository,
+                 historyMode: false,
+               ),
              ),
            ),
            GoRoute(
              path: '/staff/history',
-             builder: (context, state) => StaffBookingListPage(
-               repository: bookingRepository,
-               historyMode: true,
+             pageBuilder: (context, state) => NoTransitionPage(
+               key: state.pageKey,
+               child: StaffBookingListPage(
+                 repository: bookingRepository,
+                 historyMode: true,
+               ),
              ),
            ),
            GoRoute(
              path: '/staff/bookings/:bookingId',
-             builder: (context, state) => BookingDetailPage(
-               bookingId: state.pathParameters['bookingId'] ?? '',
-               repository: bookingRepository,
-               staffMode: true,
+             builder: (context, state) => BlocProvider(
+               create: (_) => BookingDetailBloc(
+                 repository: bookingRepository,
+                 bookingId: state.pathParameters['bookingId'] ?? '',
+                 staffMode: true,
+               )..add(const BookingDetailRequested()),
+               child: const BookingDetailPage(staffMode: true),
              ),
            ),
            GoRoute(
@@ -230,9 +336,12 @@ final class AppRouter {
            ),
            GoRoute(
              path: '/staff/profile',
-             builder: (context, state) => StaffProfilePage(
-               profileRepository: profileRepository,
-               authRepository: authRepository,
+             pageBuilder: (context, state) => NoTransitionPage(
+               key: state.pageKey,
+               child: StaffProfilePage(
+                 profileRepository: profileRepository,
+                 authRepository: authRepository,
+               ),
              ),
            ),
          ],

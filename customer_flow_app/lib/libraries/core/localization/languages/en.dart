@@ -81,6 +81,12 @@ abstract final class En {
     LanguageKeys.reloadServices: 'Reload services',
     LanguageKeys.serviceLoadFailed: 'Failed to load services.',
     LanguageKeys.serviceNotFound: 'No services found.',
+    LanguageKeys.favoriteEmptyTitle: 'No favorite services yet',
+    LanguageKeys.favoriteEmptyDescription:
+        'Tap the heart icon on a service you want to save.',
+    LanguageKeys.exploreServices: 'Explore services',
+    LanguageKeys.addFavorite: 'Add to favorites',
+    LanguageKeys.removeFavorite: 'Remove from favorites',
     LanguageKeys.startingAt: 'From {price}',
     LanguageKeys.serviceDetail: 'Service details',
     LanguageKeys.reviewsAndEstimate: '{reviews} reviews • Estimated {duration}',

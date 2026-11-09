@@ -6,11 +6,14 @@ import '../../../../libraries/core/formatters/app_formatters.dart';
 import '../../../../libraries/core/localization/app_localizations.dart';
 import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
+import '../../../favorites/presentation/cubit/favorite_cubit.dart';
+import '../../../favorites/presentation/cubit/favorite_state.dart';
 import '../../domain/entities/service_item.dart';
 import '../cubit/service_catalog_cubit.dart';
 import '../cubit/service_catalog_state.dart';
 import '../cubit/service_category_cubit.dart';
 import '../cubit/service_category_state.dart';
+import '../widgets/service_image.dart';
 
 final class ServiceListPage extends StatefulWidget {
   const ServiceListPage({this.initialCategory, super.key});
@@ -137,10 +140,22 @@ final class _ServiceListPageState extends State<ServiceListPage> {
                         separatorBuilder: (_, _) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final service = services[index];
-                          return _ServiceListTile(
-                            service: service,
-                            onTap: () =>
-                                context.push('/services/${service.id}'),
+                          return BlocBuilder<FavoriteCubit, FavoriteState>(
+                            buildWhen: (previous, current) =>
+                                previous.contains(service.id) !=
+                                current.contains(service.id),
+                            builder: (context, favoriteState) =>
+                                _ServiceListTile(
+                                  service: service,
+                                  isFavorite: favoriteState.contains(
+                                    service.id,
+                                  ),
+                                  onFavoriteToggle: () => context
+                                      .read<FavoriteCubit>()
+                                      .toggle(service.id),
+                                  onTap: () =>
+                                      context.push('/services/${service.id}'),
+                                ),
                           );
                         },
                       ),
@@ -252,9 +267,16 @@ final class _CategoryFilters extends StatelessWidget {
 }
 
 final class _ServiceListTile extends StatelessWidget {
-  const _ServiceListTile({required this.service, required this.onTap});
+  const _ServiceListTile({
+    required this.service,
+    required this.isFavorite,
+    required this.onFavoriteToggle,
+    required this.onTap,
+  });
 
   final ServiceItem service;
+  final bool isFavorite;
+  final VoidCallback onFavoriteToggle;
   final VoidCallback onTap;
 
   @override
@@ -272,14 +294,14 @@ final class _ServiceListTile extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Container(
+              SizedBox(
                 width: 64,
                 height: 64,
-                decoration: BoxDecoration(
-                  color: service.color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(18),
+                child: ServiceImage(
+                  imageUrl: service.imageUrl,
+                  fallbackIcon: service.icon,
+                  color: service.color,
                 ),
-                child: Icon(service.icon, color: service.color, size: 30),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -293,6 +315,21 @@ final class _ServiceListTile extends StatelessWidget {
                             service.name,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          tooltip: context.tr(
+                            isFavorite
+                                ? LanguageKeys.removeFavorite
+                                : LanguageKeys.addFavorite,
+                          ),
+                          onPressed: onFavoriteToggle,
+                          color: AppColors.error,
+                          icon: Icon(
+                            isFavorite
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
                           ),
                         ),
                         const Icon(

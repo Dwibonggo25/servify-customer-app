@@ -41,7 +41,8 @@ Supabase user metadata.
    email confirmation is required for your development environment.
 6. Jalankan semua file pada `supabase/migrations` secara berurutan melalui
    Supabase SQL Editor. Migration `20261104_004` menambahkan workflow staff,
-   notifikasi, RLS, serta RPC untuk menerima pesanan dan memperbarui status.
+   sedangkan `20261108_006` menambahkan CRUD layanan khusus admin beserta RLS
+   dan RPC transaksionalnya.
 
 Untuk menjadikan akun yang sudah terdaftar sebagai staff, jalankan query ini
 sebagai pemilik project (ganti emailnya):
@@ -57,6 +58,21 @@ where id = (
 Setelah login ulang, aplikasi membaca role dari `profiles` dan mengarahkan
 akun ke staff dashboard. Registrasi dari aplikasi tetap selalu membuat akun
 customer sehingga pengguna tidak dapat menaikkan role-nya sendiri.
+
+Untuk menjadikan akun sebagai admin, gunakan UUID dari `auth.users` melalui
+SQL Editor. Role tidak boleh diubah dari aplikasi client:
+
+```sql
+update public.profiles
+set role = 'admin'
+where id = (
+  select id from auth.users where email = 'admin@example.com'
+);
+```
+
+Admin akan diarahkan ke halaman pengelolaan layanan dan dapat menambah,
+mengubah, mengaktifkan/nonaktifkan, serta menghapus layanan. Layanan yang
+sudah memiliki riwayat pesanan akan diarsipkan, bukan dihapus permanen.
 
 `config/dev.json` is ignored by Git. Never commit a service-role key to a
 Flutter application. A publishable/anon key is the correct client key.

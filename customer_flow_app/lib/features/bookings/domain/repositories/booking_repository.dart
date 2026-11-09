@@ -8,6 +8,8 @@ abstract interface class BookingRepository {
 
   Future<BookingRecord?> getCustomerBooking(String id);
 
+  Stream<BookingRecord> watchCustomerBooking(String id);
+
   Future<List<BookingRecord>> getStaffBookings();
 
   Future<BookingRecord?> getStaffBooking(String id);
@@ -15,4 +17,6 @@ abstract interface class BookingRepository {
   Future<void> respondToBooking(String id, {required bool accept});
 
   Future<void> updateProgress(String id, String status);
+
+  Future<void> cancelBooking(String id);
 }

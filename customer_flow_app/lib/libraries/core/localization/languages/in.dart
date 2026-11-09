@@ -83,6 +83,12 @@ abstract final class In {
     LanguageKeys.reloadServices: 'Muat ulang layanan',
     LanguageKeys.serviceLoadFailed: 'Daftar layanan gagal dimuat.',
     LanguageKeys.serviceNotFound: 'Layanan tidak ditemukan.',
+    LanguageKeys.favoriteEmptyTitle: 'Belum ada layanan favorit',
+    LanguageKeys.favoriteEmptyDescription:
+        'Tekan ikon hati pada layanan yang ingin Anda simpan.',
+    LanguageKeys.exploreServices: 'Jelajahi layanan',
+    LanguageKeys.addFavorite: 'Tambahkan ke favorit',
+    LanguageKeys.removeFavorite: 'Hapus dari favorit',
     LanguageKeys.startingAt: 'Mulai {price}',
     LanguageKeys.serviceDetail: 'Detail layanan',
     LanguageKeys.reviewsAndEstimate: '{reviews} ulasan • Estimasi {duration}',

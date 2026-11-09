@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../libraries/core/formatters/app_formatters.dart';
@@ -9,18 +10,18 @@ import '../../../../libraries/design_system/widgets/app_button.dart';
 import '../../../../libraries/design_system/widgets/app_text_field.dart';
 import '../../../services/domain/entities/service_item.dart';
 import '../../domain/entities/booking_draft.dart';
-import '../../domain/repositories/booking_repository.dart';
+import '../bloc/booking_form_bloc.dart';
+import '../bloc/booking_form_event.dart';
+import '../bloc/booking_form_state.dart';
 
 final class BookingFormPage extends StatefulWidget {
   const BookingFormPage({
     required this.service,
-    required this.bookingRepository,
     this.initialCustomerName = '',
     super.key,
   });
 
   final ServiceItem service;
-  final BookingRepository bookingRepository;
   final String initialCustomerName;
 
   @override
@@ -35,9 +36,8 @@ final class _BookingFormPageState extends State<BookingFormPage> {
   final _noteController = TextEditingController();
 
   DateTime? _selectedDate;
-  String _selectedTime = '09.00';
+  String? _selectedTime = '09.00';
   String _paymentMethod = 'cash';
-  bool _submitting = false;
 
   static const _timeOptions = ['09.00', '11.00', '13.00', '15.00', '17.00'];
   static const _paymentOptions = ['cash', 'bank_transfer', 'e_wallet'];
@@ -59,148 +59,174 @@ final class _BookingFormPageState extends State<BookingFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(context.tr(LanguageKeys.bookingForm))),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
-          children: [
-            _ServiceSummary(service: widget.service),
-            const SizedBox(height: 28),
-            _SectionTitle(
-              number: '1',
-              title: context.tr(LanguageKeys.customerInformation),
-            ),
-            const SizedBox(height: 14),
-            AppTextField(
-              controller: _nameController,
-              label: context.tr(LanguageKeys.fullName),
-              prefixIcon: Icons.person_outline_rounded,
-              textInputAction: TextInputAction.next,
-              validator: (value) => _requiredValidator(context, value),
-            ),
-            const SizedBox(height: 14),
-            AppTextField(
-              controller: _phoneController,
-              label: context.tr(LanguageKeys.whatsappNumber),
-              hint: context.tr(LanguageKeys.phoneExample),
-              prefixIcon: Icons.phone_outlined,
-              keyboardType: TextInputType.phone,
-              textInputAction: TextInputAction.next,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return context.tr(LanguageKeys.fieldRequired, {
-                    'field': context.tr(LanguageKeys.whatsappNumber),
-                  });
-                }
-                if (value.replaceAll(RegExp(r'\D'), '').length < 9) {
-                  return context.tr(LanguageKeys.invalidWhatsapp);
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 14),
-            TextFormField(
-              controller: _addressController,
-              minLines: 3,
-              maxLines: 5,
-              textInputAction: TextInputAction.newline,
-              validator: (value) => _requiredValidator(context, value),
-              decoration: InputDecoration(
-                labelText: context.tr(LanguageKeys.serviceAddress),
-                hintText: context.tr(LanguageKeys.serviceAddressHint),
-                prefixIcon: const Padding(
-                  padding: EdgeInsets.only(bottom: 48),
-                  child: Icon(Icons.location_on_outlined),
-                ),
+    final availableTimes = _availableTimesFor(_selectedDate);
+    return BlocConsumer<BookingFormBloc, BookingFormState>(
+      listener: (context, state) {
+        if (state.status == BookingFormStatus.success &&
+            state.booking != null) {
+          context.pushReplacement(
+            '/booking/confirmation',
+            extra: state.booking,
+          );
+        } else if (state.status == BookingFormStatus.failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                state.message ?? 'Pesanan gagal dibuat. Silakan coba lagi.',
               ),
             ),
-            const SizedBox(height: 28),
-            _SectionTitle(
-              number: '2',
-              title: context.tr(LanguageKeys.serviceSchedule),
-            ),
-            const SizedBox(height: 14),
-            InkWell(
-              onTap: _pickDate,
-              borderRadius: BorderRadius.circular(16),
-              child: InputDecorator(
+          );
+        }
+      },
+      builder: (context, state) => Scaffold(
+        appBar: AppBar(title: Text(context.tr(LanguageKeys.bookingForm))),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+            children: [
+              _ServiceSummary(service: widget.service),
+              const SizedBox(height: 28),
+              _SectionTitle(
+                number: '1',
+                title: context.tr(LanguageKeys.customerInformation),
+              ),
+              const SizedBox(height: 14),
+              AppTextField(
+                controller: _nameController,
+                label: context.tr(LanguageKeys.fullName),
+                prefixIcon: Icons.person_outline_rounded,
+                textInputAction: TextInputAction.next,
+                validator: (value) => _requiredValidator(context, value),
+              ),
+              const SizedBox(height: 14),
+              AppTextField(
+                controller: _phoneController,
+                label: context.tr(LanguageKeys.whatsappNumber),
+                hint: context.tr(LanguageKeys.phoneExample),
+                prefixIcon: Icons.phone_outlined,
+                keyboardType: TextInputType.phone,
+                textInputAction: TextInputAction.next,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return context.tr(LanguageKeys.fieldRequired, {
+                      'field': context.tr(LanguageKeys.whatsappNumber),
+                    });
+                  }
+                  if (value.replaceAll(RegExp(r'\D'), '').length < 9) {
+                    return context.tr(LanguageKeys.invalidWhatsapp);
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: _addressController,
+                minLines: 3,
+                maxLines: 5,
+                textInputAction: TextInputAction.newline,
+                validator: (value) => _requiredValidator(context, value),
                 decoration: InputDecoration(
-                  labelText: context.tr(LanguageKeys.date),
-                  prefixIcon: const Icon(Icons.calendar_month_outlined),
-                  errorText: _selectedDate == null ? null : null,
-                ),
-                child: Text(
-                  _selectedDate == null
-                      ? context.tr(LanguageKeys.selectServiceDate)
-                      : AppFormatters.date(_selectedDate!),
-                  style: TextStyle(
-                    color: _selectedDate == null
-                        ? AppColors.textSecondary
-                        : AppColors.textPrimary,
+                  labelText: context.tr(LanguageKeys.serviceAddress),
+                  hintText: context.tr(LanguageKeys.serviceAddressHint),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.only(bottom: 48),
+                    child: Icon(Icons.location_on_outlined),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _timeOptions.map((time) {
-                return ChoiceChip(
-                  label: Text(time),
-                  selected: _selectedTime == time,
-                  onSelected: (_) => setState(() => _selectedTime = time),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 28),
-            _SectionTitle(
-              number: '3',
-              title: context.tr(LanguageKeys.paymentAndNotes),
-            ),
-            const SizedBox(height: 14),
-            DropdownButtonFormField<String>(
-              initialValue: _paymentMethod,
-              decoration: InputDecoration(
-                labelText: context.tr(LanguageKeys.paymentMethod),
-                prefixIcon: const Icon(Icons.payments_outlined),
+              const SizedBox(height: 28),
+              _SectionTitle(
+                number: '2',
+                title: context.tr(LanguageKeys.serviceSchedule),
               ),
-              items: _paymentOptions
-                  .map(
-                    (method) => DropdownMenuItem(
-                      value: method,
-                      child: Text(_paymentLabel(context, method)),
+              const SizedBox(height: 14),
+              InkWell(
+                onTap: _pickDate,
+                borderRadius: BorderRadius.circular(16),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: context.tr(LanguageKeys.date),
+                    prefixIcon: const Icon(Icons.calendar_month_outlined),
+                    errorText: _selectedDate == null ? null : null,
+                  ),
+                  child: Text(
+                    _selectedDate == null
+                        ? context.tr(LanguageKeys.selectServiceDate)
+                        : AppFormatters.date(_selectedDate!),
+                    style: TextStyle(
+                      color: _selectedDate == null
+                          ? AppColors.textSecondary
+                          : AppColors.textPrimary,
                     ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) setState(() => _paymentMethod = value);
-              },
-            ),
-            const SizedBox(height: 14),
-            TextFormField(
-              controller: _noteController,
-              minLines: 3,
-              maxLines: 5,
-              decoration: InputDecoration(
-                labelText: context.tr(LanguageKeys.optionalNotes),
-                hintText: context.tr(LanguageKeys.optionalNotesHint),
+                  ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 14),
+              if (_selectedDate != null && availableTimes.isEmpty)
+                const Text(
+                  'Tidak ada jadwal yang tersedia hari ini. Pilih tanggal lain.',
+                  style: TextStyle(color: AppColors.error),
+                )
+              else
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: availableTimes.map((time) {
+                    return ChoiceChip(
+                      label: Text(time),
+                      selected: _selectedTime == time,
+                      onSelected: (_) => setState(() => _selectedTime = time),
+                    );
+                  }).toList(),
+                ),
+              const SizedBox(height: 28),
+              _SectionTitle(
+                number: '3',
+                title: context.tr(LanguageKeys.paymentAndNotes),
+              ),
+              const SizedBox(height: 14),
+              DropdownButtonFormField<String>(
+                initialValue: _paymentMethod,
+                decoration: InputDecoration(
+                  labelText: context.tr(LanguageKeys.paymentMethod),
+                  prefixIcon: const Icon(Icons.payments_outlined),
+                ),
+                items: _paymentOptions
+                    .map(
+                      (method) => DropdownMenuItem(
+                        value: method,
+                        child: Text(_paymentLabel(context, method)),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) setState(() => _paymentMethod = value);
+                },
+              ),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: _noteController,
+                minLines: 3,
+                maxLines: 5,
+                decoration: InputDecoration(
+                  labelText: context.tr(LanguageKeys.optionalNotes),
+                  hintText: context.tr(LanguageKeys.optionalNotesHint),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-          color: AppColors.surface,
-          child: AppButton(
-            label: context.tr(LanguageKeys.reviewOrder),
-            isLoading: _submitting,
-            onPressed: _submit,
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+            color: AppColors.surface,
+            child: AppButton(
+              label: context.tr(LanguageKeys.reviewOrder),
+              isLoading: state.isSubmitting,
+              onPressed: _submit,
+            ),
           ),
         ),
       ),
@@ -230,15 +256,31 @@ final class _BookingFormPageState extends State<BookingFormPage> {
       firstDate: DateTime(now.year, now.month, now.day),
       lastDate: now.add(const Duration(days: 90)),
     );
-    if (date != null && mounted) setState(() => _selectedDate = date);
+    if (date != null && mounted) {
+      final availableTimes = _availableTimesFor(date);
+      setState(() {
+        _selectedDate = date;
+        if (!availableTimes.contains(_selectedTime)) {
+          _selectedTime = availableTimes.isEmpty ? null : availableTimes.first;
+        }
+      });
+    }
   }
 
-  Future<void> _submit() async {
+  void _submit() {
     final valid = _formKey.currentState?.validate() ?? false;
     if (!valid) return;
     if (_selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.tr(LanguageKeys.selectDateFirst))),
+      );
+      return;
+    }
+    if (_selectedTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pilih tanggal lain yang masih memiliki jadwal.'),
+        ),
       );
       return;
     }
@@ -249,25 +291,29 @@ final class _BookingFormPageState extends State<BookingFormPage> {
       phoneNumber: _phoneController.text.trim(),
       address: _addressController.text.trim(),
       schedule: _selectedDate!,
-      timeLabel: _selectedTime,
+      timeLabel: _selectedTime!,
       paymentMethod: _paymentMethod,
       note: _noteController.text.trim(),
     );
-    setState(() => _submitting = true);
-    try {
-      final record = await widget.bookingRepository.createBooking(booking);
-      if (mounted) {
-        context.pushReplacement('/booking/confirmation', extra: record);
-      }
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Pesanan gagal dibuat: $error')));
-      }
-    } finally {
-      if (mounted) setState(() => _submitting = false);
-    }
+    context.read<BookingFormBloc>().add(BookingSubmitted(booking));
+  }
+
+  List<String> _availableTimesFor(DateTime? date) {
+    if (date == null) return _timeOptions;
+    final now = DateTime.now();
+    return _timeOptions
+        .where((time) {
+          final parts = time.split('.');
+          final scheduledAt = DateTime(
+            date.year,
+            date.month,
+            date.day,
+            int.parse(parts.first),
+            int.parse(parts.last),
+          );
+          return scheduledAt.isAfter(now);
+        })
+        .toList(growable: false);
   }
 }
 

@@ -27,4 +27,10 @@ abstract final class AppFormatters {
   static String date(DateTime value) {
     return '${value.day} ${_months[value.month - 1]} ${value.year}';
   }
+
+  static String dateTime(DateTime value) {
+    final hour = value.hour.toString().padLeft(2, '0');
+    final minute = value.minute.toString().padLeft(2, '0');
+    return '${date(value)}, $hour.$minute';
+  }
 }

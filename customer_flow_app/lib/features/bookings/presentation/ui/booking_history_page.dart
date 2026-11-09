@@ -75,6 +75,7 @@ final class _BookingHistoryPageState extends State<BookingHistoryPage> {
         onScanPressed: () => _message(context.tr(LanguageKeys.scanComingSoon)),
         onDestinationSelected: (index) {
           if (index == 0) context.go('/home');
+          if (index == 2) context.go('/favorites');
           if (index == 3) context.go('/profile');
         },
       ),

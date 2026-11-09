@@ -27,6 +27,7 @@ final class BookingRecord extends Equatable {
     required this.totalAmount,
     required this.createdAt,
     required this.icon,
+    required this.imageUrl,
     required this.color,
     this.staffId,
     this.note,
@@ -47,6 +48,7 @@ final class BookingRecord extends Equatable {
   final int totalAmount;
   final DateTime createdAt;
   final IconData icon;
+  final String? imageUrl;
   final Color color;
   final String? staffId;
   final String? note;
@@ -70,6 +72,9 @@ final class BookingRecord extends Equatable {
     status,
     totalAmount,
     createdAt,
+    icon,
+    imageUrl,
+    color,
     staffId,
     note,
     history,

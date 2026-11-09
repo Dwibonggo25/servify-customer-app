@@ -57,7 +57,7 @@ final class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
           );
-          context.go(state.requiresEmailConfirmation ? '/login' : '/home');
+          context.go(state.requiresEmailConfirmation ? '/login' : '/gate');
         } else if (state.status == AuthSubmissionStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

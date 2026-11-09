@@ -127,26 +127,19 @@ final class _NavigationButton extends StatelessWidget {
     const inactiveColor = Color(0xFFD8D6FF);
 
     return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Semantics(
-          selected: selected,
-          button: true,
-          label: label,
+      child: Semantics(
+        selected: selected,
+        button: true,
+        label: label,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
+              SizedBox(
                 width: 34,
                 height: 31,
-                decoration: BoxDecoration(
-                  color: selected
-                      ? Colors.white.withValues(alpha: 0.18)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
                 child: Icon(
                   selected ? selectedIcon : icon,
                   color: selected ? activeColor : inactiveColor,

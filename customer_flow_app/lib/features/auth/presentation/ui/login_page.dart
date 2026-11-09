@@ -47,7 +47,7 @@ final class _LoginPageState extends State<LoginPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state.status == AuthSubmissionStatus.success) {
-          context.go('/home');
+          context.go('/gate');
         } else if (state.status == AuthSubmissionStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

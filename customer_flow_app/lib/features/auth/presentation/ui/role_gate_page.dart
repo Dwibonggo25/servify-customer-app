@@ -27,7 +27,12 @@ final class _RoleGatePageState extends State<RoleGatePage> {
     try {
       final profile = await _future;
       if (!mounted) return;
-      context.go(profile.role == 'staff' ? '/staff' : '/home');
+      final destination = switch (profile.role) {
+        'admin' => '/admin',
+        'staff' => '/staff',
+        _ => '/home',
+      };
+      context.go(destination);
     } catch (_) {
       if (mounted) setState(() {});
     }
@@ -42,7 +47,10 @@ final class _RoleGatePageState extends State<RoleGatePage> {
           if (snapshot.hasError) {
             return FilledButton.icon(
               onPressed: () {
-                setState(() => _future = widget.profileRepository.getProfile());
+                final nextLoad = widget.profileRepository.getProfile();
+                setState(() {
+                  _future = nextLoad;
+                });
                 _route();
               },
               icon: const Icon(Icons.refresh_rounded),

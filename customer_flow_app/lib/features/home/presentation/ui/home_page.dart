@@ -214,6 +214,10 @@ final class HomePage extends StatelessWidget {
               context.go('/orders');
               return;
             }
+            if (index == 2) {
+              context.go('/favorites');
+              return;
+            }
             if (index == 3) {
               context.go('/profile');
               return;

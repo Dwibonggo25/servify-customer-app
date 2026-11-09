@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../libraries/core/formatters/app_formatters.dart';
@@ -6,7 +7,10 @@ import '../../../../libraries/core/localization/app_localizations.dart';
 import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
 import '../../../../libraries/design_system/widgets/app_button.dart';
+import '../../../favorites/presentation/cubit/favorite_cubit.dart';
+import '../../../favorites/presentation/cubit/favorite_state.dart';
 import '../../domain/entities/service_item.dart';
+import '../widgets/service_image.dart';
 
 final class ServiceDetailPage extends StatelessWidget {
   const ServiceDetailPage({required this.service, super.key});
@@ -16,21 +20,46 @@ final class ServiceDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.tr(LanguageKeys.serviceDetail))),
+      appBar: AppBar(
+        title: Text(context.tr(LanguageKeys.serviceDetail)),
+        actions: [
+          BlocBuilder<FavoriteCubit, FavoriteState>(
+            buildWhen: (previous, current) =>
+                previous.contains(service.id) != current.contains(service.id),
+            builder: (context, state) {
+              final isFavorite = state.contains(service.id);
+              return IconButton(
+                tooltip: context.tr(
+                  isFavorite
+                      ? LanguageKeys.removeFavorite
+                      : LanguageKeys.addFavorite,
+                ),
+                onPressed: () =>
+                    context.read<FavoriteCubit>().toggle(service.id),
+                color: isFavorite ? AppColors.error : null,
+                icon: Icon(
+                  isFavorite
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
         children: [
-          Container(
+          SizedBox(
             height: 210,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [service.color, service.color.withValues(alpha: 0.72)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+            child: ServiceImage(
+              imageUrl: service.imageUrl,
+              fallbackIcon: service.icon,
+              color: service.color,
+              iconSize: 92,
               borderRadius: BorderRadius.circular(28),
             ),
-            child: Icon(service.icon, color: Colors.white, size: 92),
           ),
           const SizedBox(height: 24),
           Row(

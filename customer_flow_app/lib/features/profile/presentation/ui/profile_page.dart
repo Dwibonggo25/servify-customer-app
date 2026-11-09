@@ -95,10 +95,7 @@ final class ProfilePage extends StatelessWidget {
             } else if (index == 1) {
               context.go('/orders');
             } else if (index == 2) {
-              _showComingSoon(
-                context,
-                context.tr(LanguageKeys.favoriteComingSoon),
-              );
+              context.go('/favorites');
             }
           },
         ),

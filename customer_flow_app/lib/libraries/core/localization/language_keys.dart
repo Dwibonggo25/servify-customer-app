@@ -74,6 +74,11 @@ abstract final class LanguageKeys {
   static const reloadServices = 'reload_services';
   static const serviceLoadFailed = 'service_load_failed';
   static const serviceNotFound = 'service_not_found';
+  static const favoriteEmptyTitle = 'favorite_empty_title';
+  static const favoriteEmptyDescription = 'favorite_empty_description';
+  static const exploreServices = 'explore_services';
+  static const addFavorite = 'add_favorite';
+  static const removeFavorite = 'remove_favorite';
   static const startingAt = 'starting_at';
   static const serviceDetail = 'service_detail';
   static const reviewsAndEstimate = 'reviews_and_estimate';
