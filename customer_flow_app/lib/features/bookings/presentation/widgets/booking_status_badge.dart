@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 
+import '../../../../libraries/core/localization/app_localizations.dart';
+import '../../../../libraries/core/localization/language_keys.dart';
+
 final class BookingStatusBadge extends StatelessWidget {
   const BookingStatusBadge({required this.status, super.key});
 
   final String status;
 
-  static String label(String status) => switch (status) {
-    'pending' => 'Menunggu',
-    'confirmed' => 'Dikonfirmasi',
-    'assigned' => 'Diterima staff',
-    'on_the_way' => 'Dalam perjalanan',
-    'in_progress' => 'Dikerjakan',
-    'completed' => 'Selesai',
-    'cancelled' => 'Dibatalkan',
-    _ => status,
-  };
+  static String label(BuildContext context, String status) {
+    final localizations =
+        AppLocalizations.maybeOf(context) ??
+        const AppLocalizations(Locale('id'));
+    return localizations.translate(switch (status) {
+      'pending' => LanguageKeys.statusPending,
+      'confirmed' => LanguageKeys.statusConfirmed,
+      'assigned' => LanguageKeys.statusAssigned,
+      'on_the_way' => LanguageKeys.statusOnTheWay,
+      'in_progress' => LanguageKeys.statusInProgress,
+      'completed' => LanguageKeys.completed,
+      'cancelled' => LanguageKeys.cancelled,
+      _ => status,
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +40,7 @@ final class BookingStatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        label(status),
+        label(context, status),
         style: TextStyle(
           color: foreground,
           fontSize: 11,

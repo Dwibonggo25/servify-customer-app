@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../libraries/core/formatters/app_formatters.dart';
+import '../../../../libraries/core/localization/app_localizations.dart';
+import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
 import '../../../../libraries/design_system/widgets/app_button.dart';
+import '../../../../libraries/design_system/widgets/detail_app_bar.dart';
 import '../../../services/presentation/widgets/service_image.dart';
+import '../../../qr_verification/presentation/widgets/customer_booking_qr_card.dart';
 import '../../domain/entities/booking_record.dart';
 import '../bloc/booking_detail_bloc.dart';
 import '../bloc/booking_detail_event.dart';
@@ -21,18 +26,27 @@ final class BookingDetailPage extends StatelessWidget {
     return BlocConsumer<BookingDetailBloc, BookingDetailState>(
       listener: (context, state) {
         if (state.status == BookingDetailStatus.actionSuccess) {
-          _showMessage(context, state.message ?? 'Aksi berhasil.');
+          _showMessage(
+            context,
+            state.message ?? context.tr(LanguageKeys.actionSucceeded),
+          );
           if (state.shouldPop) Navigator.of(context).pop(true);
         } else if (state.status == BookingDetailStatus.failure &&
             state.booking != null) {
-          _showMessage(context, state.message ?? 'Aksi gagal.');
+          _showMessage(
+            context,
+            state.message ?? context.tr(LanguageKeys.actionFailed),
+          );
         }
       },
       builder: (context, state) => Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Detail pesanan',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        backgroundColor: const Color(0xFFF8F8FC),
+        appBar: DetailAppBar(
+          title: context.tr(LanguageKeys.bookingDetail),
+          subtitle: context.tr(
+            staffMode
+                ? LanguageKeys.staffBookingDetailSubtitle
+                : LanguageKeys.bookingDetailSubtitle,
           ),
         ),
         body: _body(context, state),
@@ -54,7 +68,7 @@ final class BookingDetailPage extends StatelessWidget {
     }
     final booking = state.booking;
     if (booking == null) {
-      return const Center(child: Text('Pesanan tidak ditemukan.'));
+      return Center(child: Text(context.tr(LanguageKeys.orderNotFound)));
     }
 
     return _BookingDetailContent(
@@ -98,6 +112,12 @@ final class _BookingDetailContent extends StatelessWidget {
         realtimeConnected: realtimeConnected,
         realtimeFailed: realtimeFailed,
       ),
+      if (!staffMode &&
+          (booking.status == 'on_the_way' ||
+              booking.status == 'in_progress')) ...[
+        const SizedBox(height: 16),
+        CustomerBookingQrCard(booking: booking),
+      ],
       const SizedBox(height: 16),
       _ProductSection(booking: booking, staffMode: staffMode),
       const SizedBox(height: 16),
@@ -125,14 +145,14 @@ final class _StatusSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _SectionCard(
-    title: 'Status pesanan',
+    title: context.tr(LanguageKeys.orderStatus),
     icon: Icons.local_shipping_outlined,
     children: [
       Row(
         children: [
           Expanded(
             child: Text(
-              BookingStatusBadge.label(booking.status),
+              BookingStatusBadge.label(context, booking.status),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
@@ -149,22 +169,25 @@ final class _StatusSection extends StatelessWidget {
         ),
       ],
       const Divider(height: 28),
-      _LabelValue(label: 'Invoice', value: booking.number),
+      _LabelValue(
+        label: context.tr(LanguageKeys.invoice),
+        value: booking.number,
+      ),
       const SizedBox(height: 12),
       _LabelValue(
-        label: 'Tanggal pesanan',
+        label: context.tr(LanguageKeys.orderDate),
         value: AppFormatters.dateTime(booking.createdAt),
       ),
       const SizedBox(height: 12),
       _LabelValue(
-        label: 'Jadwal layanan',
+        label: context.tr(LanguageKeys.serviceDate),
         value: AppFormatters.dateTime(booking.scheduledAt),
       ),
       if (booking.history.isNotEmpty) ...[
         const Divider(height: 28),
-        const Text(
-          'Perjalanan status',
-          style: TextStyle(fontWeight: FontWeight.w800),
+        Text(
+          context.tr(LanguageKeys.statusJourney),
+          style: const TextStyle(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 14),
         ...booking.history.indexed.map(
@@ -203,10 +226,10 @@ final class _RealtimeIndicator extends StatelessWidget {
       const SizedBox(width: 7),
       Text(
         connected
-            ? 'Pembaruan realtime aktif'
+            ? context.tr(LanguageKeys.realtimeActive)
             : failed
-            ? 'Realtime tidak tersambung'
-            : 'Menghubungkan realtime...',
+            ? context.tr(LanguageKeys.realtimeDisconnected)
+            : context.tr(LanguageKeys.realtimeConnecting),
         style: TextStyle(
           color: connected
               ? AppColors.success
@@ -229,7 +252,7 @@ final class _ProductSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _SectionCard(
-    title: 'Detail produk',
+    title: context.tr(LanguageKeys.productDetails),
     icon: Icons.home_repair_service_outlined,
     children: [
       Row(
@@ -258,9 +281,9 @@ final class _ProductSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 5),
-                const Text(
-                  'Jenis pesanan: Layanan jasa',
-                  style: TextStyle(color: AppColors.textSecondary),
+                Text(
+                  context.tr(LanguageKeys.serviceOrderType),
+                  style: const TextStyle(color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 10),
                 Text(
@@ -278,20 +301,20 @@ final class _ProductSection extends StatelessWidget {
       const Divider(height: 28),
       _IconDetail(
         icon: Icons.location_on_outlined,
-        label: 'Alamat layanan',
+        label: context.tr(LanguageKeys.serviceLocation),
         value: booking.address,
       ),
       if (staffMode) ...[
         const SizedBox(height: 14),
         _IconDetail(
           icon: Icons.person_outline_rounded,
-          label: 'Customer',
+          label: context.tr(LanguageKeys.customer),
           value: booking.customerName,
         ),
         const SizedBox(height: 14),
         _IconDetail(
           icon: Icons.phone_outlined,
-          label: 'Telepon',
+          label: context.tr(LanguageKeys.phoneNumber),
           value: booking.customerPhone,
         ),
       ],
@@ -299,7 +322,7 @@ final class _ProductSection extends StatelessWidget {
         const SizedBox(height: 14),
         _IconDetail(
           icon: Icons.notes_rounded,
-          label: 'Catatan',
+          label: context.tr(LanguageKeys.notes),
           value: booking.note!,
         ),
       ],
@@ -319,31 +342,32 @@ final class _HelpSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _SectionCard(
-    title: 'Bantuan',
+    title: context.tr(LanguageKeys.help),
     icon: Icons.support_agent_rounded,
     padding: EdgeInsets.zero,
     children: [
       _ActionTile(
         icon: Icons.chat_bubble_outline_rounded,
-        title: 'Chat penjual',
-        subtitle: 'Tanyakan detail layanan kepada penyedia',
-        onTap: () => _comingSoon(context, 'Fitur chat akan segera tersedia.'),
+        title: context.tr(LanguageKeys.chatProvider),
+        subtitle: context.tr(LanguageKeys.chatProviderDescription),
+        onTap: () =>
+            _comingSoon(context, context.tr(LanguageKeys.chatComingSoon)),
       ),
       if (_canCancel)
         _ActionTile(
           icon: Icons.cancel_outlined,
-          title: 'Batalkan pesanan',
-          subtitle: 'Batalkan sebelum pesanan diterima staff',
+          title: context.tr(LanguageKeys.cancelOrder),
+          subtitle: context.tr(LanguageKeys.cancelOrderDescription),
           destructive: true,
           onTap: submitting ? null : () => _confirmCancellation(context),
         ),
       _ActionTile(
         icon: Icons.help_outline_rounded,
-        title: 'Cek pusat bantuan',
-        subtitle: 'Temukan jawaban dan bantuan lainnya',
+        title: context.tr(LanguageKeys.helpCenter),
+        subtitle: context.tr(LanguageKeys.helpCenterDescription),
         showDivider: false,
         onTap: () =>
-            _comingSoon(context, 'Pusat bantuan akan segera tersedia.'),
+            _comingSoon(context, context.tr(LanguageKeys.helpCenterComingSoon)),
       ),
     ],
   );
@@ -352,19 +376,17 @@ final class _HelpSection extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Batalkan pesanan?'),
-        content: const Text(
-          'Pesanan yang sudah dibatalkan tidak dapat dipulihkan.',
-        ),
+        title: Text(context.tr(LanguageKeys.cancelOrderQuestion)),
+        content: Text(context.tr(LanguageKeys.cancelOrderWarning)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Kembali'),
+            child: Text(context.tr(LanguageKeys.back)),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Batalkan pesanan'),
+            child: Text(context.tr(LanguageKeys.cancelOrder)),
           ),
         ],
       ),
@@ -391,7 +413,7 @@ final class _StaffActionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _SectionCard(
-    title: 'Tindakan pekerjaan',
+    title: context.tr(LanguageKeys.workActions),
     icon: Icons.engineering_outlined,
     children: _actions(context),
   );
@@ -403,7 +425,7 @@ final class _StaffActionSection extends StatelessWidget {
           children: [
             Expanded(
               child: AppButton(
-                label: 'Tolak',
+                label: context.tr(LanguageKeys.reject),
                 isOutlined: true,
                 isLoading: submitting,
                 onPressed: () => context.read<BookingDetailBloc>().add(
@@ -414,7 +436,7 @@ final class _StaffActionSection extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: AppButton(
-                label: 'Terima',
+                label: context.tr(LanguageKeys.accept),
                 isLoading: submitting,
                 onPressed: () => context.read<BookingDetailBloc>().add(
                   const BookingResponseSubmitted(accept: true),
@@ -426,22 +448,54 @@ final class _StaffActionSection extends StatelessWidget {
       ];
     }
 
-    final next = switch (booking.status) {
-      'assigned' => ('on_the_way', 'Berangkat ke lokasi'),
-      'on_the_way' => ('in_progress', 'Mulai pekerjaan'),
-      'in_progress' => ('completed', 'Selesaikan pekerjaan'),
+    if (booking.status == 'assigned') {
+      return [
+        AppButton(
+          label: context.tr(LanguageKeys.leaveForLocation),
+          icon: Icons.directions_rounded,
+          isLoading: submitting,
+          onPressed: () => context.read<BookingDetailBloc>().add(
+            const BookingProgressSubmitted('on_the_way'),
+          ),
+        ),
+      ];
+    }
+
+    final scanPurpose = switch (booking.status) {
+      'on_the_way' => (
+        context.tr(LanguageKeys.qrPurposeArrival),
+        context.tr(LanguageKeys.scanArrivalQr),
+      ),
+      'in_progress' => (
+        context.tr(LanguageKeys.qrPurposeCompletion),
+        context.tr(LanguageKeys.scanCompletionQr),
+      ),
       _ => null,
     };
-    if (next == null) {
-      return const [Text('Tidak ada tindakan lanjutan untuk pesanan ini.')];
+    if (scanPurpose == null) {
+      return [Text(context.tr(LanguageKeys.noFurtherAction))];
     }
     return [
       AppButton(
-        label: next.$2,
+        label: scanPurpose.$2,
+        icon: Icons.qr_code_scanner_rounded,
         isLoading: submitting,
-        onPressed: () => context.read<BookingDetailBloc>().add(
-          BookingProgressSubmitted(next.$1),
-        ),
+        onPressed: () async {
+          final verified = await context.push<bool>(
+            '/staff/bookings/${booking.id}/scan'
+            '?purpose=${scanPurpose.$1}',
+          );
+          if (verified == true && context.mounted) {
+            context.read<BookingDetailBloc>().add(
+              const BookingDetailRequested(),
+            );
+          }
+        },
+      ),
+      const SizedBox(height: 10),
+      Text(
+        context.tr(LanguageKeys.qrLocationDisclosure),
+        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
       ),
     ];
   }
@@ -456,26 +510,26 @@ final class _PaymentSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final serviceFee = booking.totalAmount - booking.servicePrice;
     return _SectionCard(
-      title: 'Rincian pembayaran',
+      title: context.tr(LanguageKeys.paymentDetails),
       icon: Icons.receipt_long_outlined,
       children: [
         _PaymentRow(
-          label: 'Harga layanan',
+          label: context.tr(LanguageKeys.servicePrice),
           value: AppFormatters.rupiah(booking.servicePrice),
         ),
         const SizedBox(height: 12),
         _PaymentRow(
-          label: 'Biaya layanan',
+          label: context.tr(LanguageKeys.serviceFee),
           value: AppFormatters.rupiah(serviceFee < 0 ? 0 : serviceFee),
         ),
         const SizedBox(height: 12),
         _PaymentRow(
-          label: 'Metode pembayaran',
-          value: _paymentMethodLabel(booking.paymentMethod),
+          label: context.tr(LanguageKeys.paymentMethod),
+          value: _paymentMethodLabel(context, booking.paymentMethod),
         ),
         const Divider(height: 28),
         _PaymentRow(
-          label: 'Total pembayaran',
+          label: context.tr(LanguageKeys.totalPayment),
           value: AppFormatters.rupiah(booking.totalAmount),
           emphasized: true,
         ),
@@ -483,11 +537,12 @@ final class _PaymentSection extends StatelessWidget {
     );
   }
 
-  String _paymentMethodLabel(String method) => switch (method) {
-    'bank_transfer' => 'Transfer bank',
-    'ewallet' || 'e_wallet' => 'E-wallet',
-    _ => 'Tunai',
-  };
+  String _paymentMethodLabel(BuildContext context, String method) =>
+      switch (method) {
+        'bank_transfer' => context.tr(LanguageKeys.bankTransfer),
+        'ewallet' || 'e_wallet' => context.tr(LanguageKeys.eWallet),
+        _ => context.tr(LanguageKeys.cash),
+      };
 }
 
 final class _SectionCard extends StatelessWidget {
@@ -712,7 +767,7 @@ final class _TimelineEntry extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                BookingStatusBadge.label(entry.status),
+                BookingStatusBadge.label(context, entry.status),
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 3),
@@ -744,12 +799,12 @@ final class _ErrorState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(message ?? 'Detail pesanan gagal dimuat.'),
+          Text(message ?? context.tr(LanguageKeys.bookingDetailLoadFailed)),
           const SizedBox(height: 14),
           FilledButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Coba lagi'),
+            label: Text(context.tr(LanguageKeys.retry)),
           ),
         ],
       ),

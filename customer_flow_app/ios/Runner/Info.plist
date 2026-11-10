@@ -28,6 +28,10 @@
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Servify memerlukan akses galeri agar admin dapat mengunggah gambar layanan.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Servify memerlukan kamera agar staf dapat memindai QR verifikasi pesanan.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Servify menyimpan lokasi staf saat QR pesanan diverifikasi.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

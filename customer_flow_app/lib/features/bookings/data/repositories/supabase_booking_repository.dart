@@ -7,9 +7,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/booking_draft.dart';
 import '../../domain/entities/booking_record.dart';
 import '../../domain/repositories/booking_repository.dart';
+import '../datasources/staff_booking_remote_data_source.dart';
 
 final class SupabaseBookingRepository implements BookingRepository {
-  const SupabaseBookingRepository(this._client);
+  const SupabaseBookingRepository(
+    this._client, {
+    required StaffBookingRemoteDataSource staffRemoteDataSource,
+  }) : _staffRemoteDataSource = staffRemoteDataSource;
 
   static const _selection =
       'id, booking_number, service_id, staff_id, service_name, service_price, '
@@ -18,6 +22,7 @@ final class SupabaseBookingRepository implements BookingRepository {
       'services(icon_key, image_url, color_value)';
 
   final SupabaseClient _client;
+  final StaffBookingRemoteDataSource _staffRemoteDataSource;
 
   @override
   Future<BookingRecord> createBooking(BookingDraft draft) async {
@@ -153,25 +158,27 @@ final class SupabaseBookingRepository implements BookingRepository {
   }
 
   @override
-  Future<List<BookingRecord>> getStaffBookings() => _getBookings();
+  Future<List<BookingRecord>> getStaffBookings() async {
+    final rows = await _staffRemoteDataSource.fetchBookings();
+    return rows.map(_mapBooking).toList(growable: false);
+  }
 
   @override
-  Future<BookingRecord?> getStaffBooking(String id) => _getBooking(id);
+  Future<BookingRecord?> getStaffBooking(String id) async {
+    final row = await _staffRemoteDataSource.fetchBooking(id);
+    if (row == null) return null;
+    final historyRows = await _staffRemoteDataSource.fetchBookingHistory(id);
+    return _mapBooking(row, history: _mapHistory(historyRows));
+  }
 
   @override
   Future<void> respondToBooking(String id, {required bool accept}) {
-    return _client.rpc<void>(
-      'respond_to_booking',
-      params: {'p_booking_id': id, 'p_accept': accept},
-    );
+    return _staffRemoteDataSource.respondToBooking(id, accept: accept);
   }
 
   @override
   Future<void> updateProgress(String id, String status) {
-    return _client.rpc<void>(
-      'update_booking_progress',
-      params: {'p_booking_id': id, 'p_status': status},
-    );
+    return _staffRemoteDataSource.updateProgress(id, status);
   }
 
   @override
@@ -203,16 +210,21 @@ final class SupabaseBookingRepository implements BookingRepository {
         .select('status, created_at')
         .eq('booking_id', id)
         .order('created_at');
-    final history = historyRows
-        .map(
-          (entry) => BookingStatusEntry(
-            status: entry['status'] as String,
-            createdAt: DateTime.parse(entry['created_at'] as String).toLocal(),
-          ),
-        )
-        .toList(growable: false);
+    final history = _mapHistory(historyRows);
     return _mapBooking(row, history: history);
   }
+
+  List<BookingStatusEntry> _mapHistory(Iterable<Map<String, dynamic>> rows) =>
+      rows
+          .map(
+            (entry) => BookingStatusEntry(
+              status: entry['status'] as String,
+              createdAt: DateTime.parse(
+                entry['created_at'] as String,
+              ).toLocal(),
+            ),
+          )
+          .toList(growable: false);
 
   BookingRecord _mapBooking(
     Map<String, dynamic> row, {

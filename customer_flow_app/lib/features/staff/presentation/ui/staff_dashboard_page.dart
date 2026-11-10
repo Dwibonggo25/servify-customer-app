@@ -1,96 +1,94 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../libraries/design_system/theme/app_colors.dart';
-import '../../../bookings/domain/entities/booking_record.dart';
-import '../../../bookings/domain/repositories/booking_repository.dart';
-import '../../../bookings/presentation/widgets/booking_status_badge.dart';
+import '../bloc/staff_bookings_bloc.dart';
+import '../bloc/staff_bookings_event.dart';
+import '../bloc/staff_bookings_state.dart';
+import '../widgets/staff_booking_card.dart';
 import '../widgets/staff_bottom_navigation.dart';
+import '../widgets/staff_gradient_app_bar.dart';
 
-final class StaffDashboardPage extends StatefulWidget {
-  const StaffDashboardPage({required this.repository, super.key});
-  final BookingRepository repository;
-
-  @override
-  State<StaffDashboardPage> createState() => _StaffDashboardPageState();
-}
-
-final class _StaffDashboardPageState extends State<StaffDashboardPage> {
-  late Future<List<BookingRecord>> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _reload();
-  }
-
-  void _reload() => _future = widget.repository.getStaffBookings();
+final class StaffDashboardPage extends StatelessWidget {
+  const StaffDashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Dashboard staff'),
+    backgroundColor: const Color(0xFFF8F8FC),
+    appBar: StaffGradientAppBar(
+      title: 'Dashboard Staff',
+      subtitle: 'Kelola pekerjaan dan pantau progres hari ini',
+      icon: Icons.dashboard_customize_rounded,
       actions: [
-        IconButton(
-          onPressed: () => context.push('/staff/notifications'),
-          icon: const Icon(Icons.notifications_none_rounded),
+        Padding(
+          padding: const EdgeInsets.only(right: 10),
+          child: IconButton.filledTonal(
+            tooltip: 'Notifikasi',
+            onPressed: () => context.push('/staff/notifications'),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.white.withValues(alpha: 0.16),
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.notifications_none_rounded),
+          ),
         ),
       ],
     ),
-    body: FutureBuilder<List<BookingRecord>>(
-      future: _future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+    body: BlocBuilder<StaffBookingsBloc, StaffBookingsState>(
+      builder: (context, state) {
+        if (state.status == StaffBookingsStatus.loading &&
+            state.bookings.isEmpty) {
+          return const _LoadingView();
         }
-        if (snapshot.hasError) return _error();
-        final bookings = snapshot.data ?? const <BookingRecord>[];
-        final available = bookings.where((item) => item.isAvailable).toList();
-        final active = bookings
-            .where((item) => !item.isAvailable && !item.isFinished)
-            .toList();
-        final completed = bookings
-            .where((item) => item.status == 'completed')
-            .length;
+        if (state.status == StaffBookingsStatus.failure &&
+            state.bookings.isEmpty) {
+          return _ErrorView(message: state.message);
+        }
         return RefreshIndicator(
-          onRefresh: () async {
-            setState(_reload);
-            await _future;
-          },
+          onRefresh: () => _refreshBookings(context),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 32),
             children: [
-              Text(
-                'Ringkasan pekerjaan',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+              if (state.status == StaffBookingsStatus.failure) ...[
+                _SyncErrorBanner(message: state.message),
+                const SizedBox(height: 16),
+              ],
+              _OpportunityBanner(
+                count: state.available.length,
+                onTap: () => context.go('/staff/incoming'),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
+              const _SectionTitle(
+                title: 'Ringkasan pekerjaan',
+                subtitle: 'Aktivitas akun Anda saat ini',
+              ),
+              const SizedBox(height: 14),
               Row(
                 children: [
                   Expanded(
                     child: _MetricCard(
-                      label: 'Pesanan baru',
-                      value: available.length,
-                      icon: Icons.inbox_rounded,
+                      label: 'Baru',
+                      value: state.available.length,
+                      icon: Icons.mark_email_unread_rounded,
                       color: const Color(0xFFF59E0B),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: _MetricCard(
                       label: 'Aktif',
-                      value: active.length,
+                      value: state.active.length,
                       icon: Icons.handyman_rounded,
                       color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: _MetricCard(
                       label: 'Selesai',
-                      value: completed,
+                      value: state.completedCount,
                       icon: Icons.task_alt_rounded,
                       color: AppColors.success,
                     ),
@@ -98,31 +96,34 @@ final class _StaffDashboardPageState extends State<StaffDashboardPage> {
                 ],
               ),
               const SizedBox(height: 28),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Pekerjaan aktif',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => context.go('/staff/incoming'),
-                    child: const Text('Lihat semua'),
-                  ),
-                ],
+              _SectionTitle(
+                title: 'Pekerjaan aktif',
+                subtitle: 'Pesanan yang sedang Anda tangani',
+                actionLabel: 'Lihat semua',
+                onAction: () => context.go('/staff/incoming'),
               ),
-              const SizedBox(height: 8),
-              if (active.isEmpty)
-                const _EmptyCard(text: 'Belum ada pekerjaan aktif.')
+              const SizedBox(height: 14),
+              if (state.active.isEmpty)
+                const _EmptyCard(
+                  icon: Icons.work_history_outlined,
+                  title: 'Belum ada pekerjaan aktif',
+                  subtitle:
+                      'Terima pesanan masuk untuk mulai mengerjakan layanan.',
+                )
               else
-                ...active
-                    .take(3)
+                ...state.active
+                    .take(2)
                     .map(
-                      (item) => _StaffBookingTile(
-                        booking: item,
-                        onTap: () => context.push('/staff/bookings/${item.id}'),
+                      (booking) => StaffBookingCard(
+                        booking: booking,
+                        onTap: () async {
+                          await context.push('/staff/bookings/${booking.id}');
+                          if (context.mounted) {
+                            context.read<StaffBookingsBloc>().add(
+                              const StaffBookingsRequested(refresh: true),
+                            );
+                          }
+                        },
                       ),
                     ),
             ],
@@ -132,99 +133,235 @@ final class _StaffDashboardPageState extends State<StaffDashboardPage> {
     ),
     bottomNavigationBar: const StaffBottomNavigation(index: 0),
   );
-
-  Widget _error() => Center(
-    child: FilledButton.icon(
-      onPressed: () => setState(_reload),
-      icon: const Icon(Icons.refresh_rounded),
-      label: const Text('Coba lagi'),
-    ),
-  );
 }
 
-final class StaffBookingListPage extends StatefulWidget {
-  const StaffBookingListPage({
-    required this.repository,
-    required this.historyMode,
-    super.key,
-  });
-  final BookingRepository repository;
+final class StaffBookingListPage extends StatelessWidget {
+  const StaffBookingListPage({required this.historyMode, super.key});
+
   final bool historyMode;
 
   @override
-  State<StaffBookingListPage> createState() => _StaffBookingListPageState();
-}
-
-final class _StaffBookingListPageState extends State<StaffBookingListPage> {
-  late Future<List<BookingRecord>> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _reload();
-  }
-
-  void _reload() => _future = widget.repository.getStaffBookings();
-
-  @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(widget.historyMode ? 'Riwayat pekerjaan' : 'Pesanan masuk'),
+    backgroundColor: const Color(0xFFF8F8FC),
+    appBar: StaffGradientAppBar(
+      title: historyMode ? 'Riwayat Pekerjaan' : 'Pesanan Masuk',
+      subtitle: historyMode
+          ? 'Lihat kembali pekerjaan yang telah ditangani'
+          : 'Pilih pesanan dan berikan respons dengan cepat',
+      icon: historyMode ? Icons.history_rounded : Icons.inbox_rounded,
     ),
-    body: FutureBuilder<List<BookingRecord>>(
-      future: _future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+    body: BlocBuilder<StaffBookingsBloc, StaffBookingsState>(
+      builder: (context, state) {
+        if (state.status == StaffBookingsStatus.loading &&
+            state.bookings.isEmpty) {
+          return const _LoadingView();
         }
-        if (snapshot.hasError) {
-          return Center(
-            child: FilledButton(
-              onPressed: () => setState(_reload),
-              child: const Text('Coba lagi'),
-            ),
-          );
+        if (state.status == StaffBookingsStatus.failure &&
+            state.bookings.isEmpty) {
+          return _ErrorView(message: state.message);
         }
-        final items = (snapshot.data ?? const <BookingRecord>[])
-            .where(
-              (item) => widget.historyMode ? item.isFinished : !item.isFinished,
-            )
-            .toList();
-        if (items.isEmpty) {
-          return Center(
-            child: Text(
-              widget.historyMode
-                  ? 'Belum ada riwayat pekerjaan.'
-                  : 'Belum ada pesanan masuk.',
-            ),
-          );
-        }
+        final items = historyMode ? state.history : state.incoming;
         return RefreshIndicator(
-          onRefresh: () async {
-            setState(_reload);
-            await _future;
-          },
+          onRefresh: () => _refreshBookings(context),
           child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: items
-                .map(
-                  (item) => _StaffBookingTile(
-                    booking: item,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 32),
+            children: [
+              if (state.status == StaffBookingsStatus.failure) ...[
+                _SyncErrorBanner(message: state.message),
+                const SizedBox(height: 16),
+              ],
+              _ListSummaryCard(
+                historyMode: historyMode,
+                count: items.length,
+                newCount: state.available.length,
+              ),
+              const SizedBox(height: 22),
+              _SectionTitle(
+                title: historyMode ? 'Semua riwayat' : 'Daftar pesanan',
+                subtitle: historyMode
+                    ? '${items.length} pekerjaan ditemukan'
+                    : '${state.available.length} pesanan baru menunggu respons',
+              ),
+              const SizedBox(height: 14),
+              if (items.isEmpty)
+                _EmptyCard(
+                  icon: historyMode
+                      ? Icons.history_toggle_off_rounded
+                      : Icons.inbox_outlined,
+                  title: historyMode
+                      ? 'Belum ada riwayat pekerjaan'
+                      : 'Belum ada pesanan masuk',
+                  subtitle: historyMode
+                      ? 'Pekerjaan yang selesai akan muncul di halaman ini.'
+                      : 'Tarik ke bawah untuk memeriksa pesanan terbaru.',
+                )
+              else
+                ...items.map(
+                  (booking) => StaffBookingCard(
+                    booking: booking,
                     onTap: () async {
-                      await context.push('/staff/bookings/${item.id}');
-                      if (mounted) setState(_reload);
+                      await context.push('/staff/bookings/${booking.id}');
+                      if (context.mounted) {
+                        context.read<StaffBookingsBloc>().add(
+                          const StaffBookingsRequested(refresh: true),
+                        );
+                      }
                     },
                   ),
-                )
-                .toList(),
+                ),
+            ],
           ),
         );
       },
     ),
-    bottomNavigationBar: StaffBottomNavigation(
-      index: widget.historyMode ? 2 : 1,
+    bottomNavigationBar: StaffBottomNavigation(index: historyMode ? 2 : 1),
+  );
+}
+
+Future<void> _refreshBookings(BuildContext context) async {
+  final bloc = context.read<StaffBookingsBloc>();
+  bloc.add(const StaffBookingsRequested(refresh: true));
+  await bloc.stream.firstWhere(
+    (state) => !state.refreshing && state.status != StaffBookingsStatus.loading,
+  );
+}
+
+final class _OpportunityBanner extends StatelessWidget {
+  const _OpportunityBanner({required this.count, required this.onTap});
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFFF7E6), Color(0xFFFFE8B8)],
+      ),
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(color: const Color(0xFFFCD38D)),
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 54,
+          height: 54,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: const Icon(
+            Icons.notifications_active_rounded,
+            color: Color(0xFFD97706),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                count == 0
+                    ? 'Tidak ada pesanan baru'
+                    : '$count pesanan baru tersedia',
+                style: const TextStyle(
+                  color: Color(0xFF78350F),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                count == 0
+                    ? 'Kami akan memberi tahu saat ada pekerjaan baru.'
+                    : 'Periksa detail dan ambil pekerjaan yang sesuai.',
+                style: const TextStyle(color: Color(0xFF92400E), fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+        if (count > 0)
+          IconButton.filled(
+            onPressed: onTap,
+            style: IconButton.styleFrom(
+              backgroundColor: const Color(0xFFD97706),
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.arrow_forward_rounded),
+          ),
+      ],
     ),
   );
+}
+
+final class _ListSummaryCard extends StatelessWidget {
+  const _ListSummaryCard({
+    required this.historyMode,
+    required this.count,
+    required this.newCount,
+  });
+
+  final bool historyMode;
+  final int count;
+  final int newCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = historyMode ? AppColors.success : AppColors.primary;
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              historyMode ? Icons.task_alt_rounded : Icons.assignment_rounded,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$count ${historyMode ? 'pekerjaan selesai' : 'pesanan aktif'}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  historyMode
+                      ? 'Dokumentasi pekerjaan Anda'
+                      : '$newCount di antaranya merupakan pesanan baru',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 final class _MetricCard extends StatelessWidget {
@@ -234,6 +371,7 @@ final class _MetricCard extends StatelessWidget {
     required this.icon,
     required this.color,
   });
+
   final String label;
   final int value;
   final IconData icon;
@@ -241,68 +379,196 @@ final class _MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(14),
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 15),
     decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(18),
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: AppColors.border),
+      boxShadow: [
+        BoxShadow(
+          color: color.withValues(alpha: 0.07),
+          blurRadius: 16,
+          offset: const Offset(0, 6),
+        ),
+      ],
     ),
     child: Column(
       children: [
-        Icon(icon, color: color),
-        const SizedBox(height: 8),
+        Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(height: 9),
         Text(
           '$value',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900),
         ),
         Text(
           label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 11),
+          maxLines: 1,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     ),
   );
 }
 
-final class _StaffBookingTile extends StatelessWidget {
-  const _StaffBookingTile({required this.booking, required this.onTap});
-  final BookingRecord booking;
-  final VoidCallback onTap;
+final class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({
+    required this.title,
+    required this.subtitle,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String title;
+  final String subtitle;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
-  Widget build(BuildContext context) => Card(
-    margin: const EdgeInsets.only(bottom: 12),
-    child: ListTile(
-      onTap: onTap,
-      leading: CircleAvatar(
-        backgroundColor: booking.color.withValues(alpha: 0.12),
-        child: Icon(booking.icon, color: booking.color),
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.end,
+    children: [
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
       ),
-      title: Text(
-        booking.serviceName,
-        style: const TextStyle(fontWeight: FontWeight.w800),
-      ),
-      subtitle: Text('${booking.customerName}\n${booking.address}'),
-      isThreeLine: true,
-      trailing: BookingStatusBadge(status: booking.status),
-    ),
+      if (actionLabel != null)
+        TextButton(onPressed: onAction, child: Text(actionLabel!)),
+    ],
   );
 }
 
 final class _EmptyCard extends StatelessWidget {
-  const _EmptyCard({required this.text});
-  final String text;
+  const _EmptyCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(24),
+    padding: const EdgeInsets.all(28),
     decoration: BoxDecoration(
       color: AppColors.surface,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(24),
       border: Border.all(color: AppColors.border),
     ),
-    child: Text(text, textAlign: TextAlign.center),
+    child: Column(
+      children: [
+        Icon(icon, size: 44, color: AppColors.textSecondary),
+        const SizedBox(height: 12),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+        ),
+      ],
+    ),
+  );
+}
+
+final class _LoadingView extends StatelessWidget {
+  const _LoadingView();
+
+  @override
+  Widget build(BuildContext context) =>
+      const Center(child: CircularProgressIndicator());
+}
+
+final class _ErrorView extends StatelessWidget {
+  const _ErrorView({this.message});
+
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.cloud_off_rounded,
+            size: 52,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(height: 14),
+          Text(message ?? 'Pesanan gagal dimuat.', textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => context.read<StaffBookingsBloc>().add(
+              const StaffBookingsRequested(),
+            ),
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Coba lagi'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+final class _SyncErrorBanner extends StatelessWidget {
+  const _SyncErrorBanner({this.message});
+
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(13),
+    decoration: BoxDecoration(
+      color: AppColors.error.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Row(
+      children: [
+        const Icon(Icons.sync_problem_rounded, color: AppColors.error),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            message ?? 'Data terbaru gagal disinkronkan.',
+            style: const TextStyle(fontSize: 12),
+          ),
+        ),
+      ],
+    ),
   );
 }

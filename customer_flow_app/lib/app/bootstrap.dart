@@ -4,10 +4,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/auth/data/repositories/supabase_auth_repository.dart';
 import '../features/bookings/data/repositories/supabase_booking_repository.dart';
+import '../features/bookings/data/datasources/supabase_staff_booking_remote_data_source.dart';
 import '../features/favorites/data/repositories/hive_favorite_repository.dart';
 import '../features/notifications/data/repositories/supabase_notification_repository.dart';
 import '../features/onboarding/data/repositories/hive_onboarding_repository.dart';
 import '../features/profile/data/repositories/supabase_profile_repository.dart';
+import '../features/qr_verification/data/repositories/device_location_repository.dart';
+import '../features/qr_verification/data/repositories/supabase_booking_qr_repository.dart';
 import '../features/services/data/repositories/supabase_service_category_repository.dart';
 import '../features/services/data/repositories/supabase_service_repository.dart';
 import '../libraries/core/config/app_config.dart';
@@ -38,7 +41,13 @@ Future<void> bootstrap(Flavor flavor) async {
   );
 
   final authRepository = SupabaseAuthRepository(Supabase.instance.client);
-  final bookingRepository = SupabaseBookingRepository(Supabase.instance.client);
+  final staffBookingRemoteDataSource = SupabaseStaffBookingRemoteDataSource(
+    Supabase.instance.client,
+  );
+  final bookingRepository = SupabaseBookingRepository(
+    Supabase.instance.client,
+    staffRemoteDataSource: staffBookingRemoteDataSource,
+  );
   final favoriteRepository = HiveFavoriteRepository(
     box: favoritesBox,
     ownerId: () => Supabase.instance.client.auth.currentUser?.id ?? 'guest',
@@ -47,6 +56,10 @@ Future<void> bootstrap(Flavor flavor) async {
     Supabase.instance.client,
   );
   final profileRepository = SupabaseProfileRepository(Supabase.instance.client);
+  final bookingQrRepository = SupabaseBookingQrRepository(
+    Supabase.instance.client,
+  );
+  const locationRepository = DeviceLocationRepository();
   final serviceCategoryRepository = SupabaseServiceCategoryRepository(
     Supabase.instance.client,
   );
@@ -60,9 +73,11 @@ Future<void> bootstrap(Flavor flavor) async {
     sessionController: sessionController,
     authRepository: authRepository,
     bookingRepository: bookingRepository,
+    bookingQrRepository: bookingQrRepository,
     favoriteRepository: favoriteRepository,
     notificationRepository: notificationRepository,
     profileRepository: profileRepository,
+    locationRepository: locationRepository,
     serviceCategoryRepository: serviceCategoryRepository,
     serviceRepository: serviceRepository,
   );

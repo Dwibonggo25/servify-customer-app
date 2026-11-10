@@ -6,6 +6,7 @@ import '../../../../libraries/core/localization/app_localizations.dart';
 import '../../../../libraries/core/localization/language_controller.dart';
 import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
+import '../../../../libraries/design_system/widgets/app_bar.dart';
 import '../../../../libraries/design_system/widgets/app_bottom_navigation.dart';
 import '../../../../libraries/design_system/widgets/app_button.dart';
 import '../../../../libraries/design_system/widgets/app_text_field.dart';
@@ -55,9 +56,10 @@ final class ProfilePage extends StatelessWidget {
         ),
       ],
       child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text(context.tr(LanguageKeys.profile)),
+        appBar: AppBarWidget(
+          title: LanguageKeys.profile,
+          subtitle: LanguageKeys.profilePageSubtitle,
+          icons: Icons.person_rounded,
           actions: [
             BlocBuilder<ProfileCubit, ProfileState>(
               builder: (context, state) => IconButton(

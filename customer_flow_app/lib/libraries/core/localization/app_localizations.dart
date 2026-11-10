@@ -14,6 +14,10 @@ final class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
+  static AppLocalizations? maybeOf(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  }
+
   String translate(String key, [Map<String, Object>? arguments]) {
     final translations = locale.languageCode == 'en' ? En.values : In.values;
     var result = translations[key] ?? In.values[key] ?? key;

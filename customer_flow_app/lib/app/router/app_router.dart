@@ -31,6 +31,11 @@ import '../../features/onboarding/presentation/ui/onboarding_page.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
 import '../../features/profile/presentation/cubit/profile_cubit.dart';
 import '../../features/profile/presentation/ui/profile_page.dart';
+import '../../features/qr_verification/domain/repositories/booking_qr_repository.dart';
+import '../../features/qr_verification/domain/repositories/location_repository.dart';
+import '../../features/qr_verification/presentation/cubit/customer_qr_cubit.dart';
+import '../../features/qr_verification/presentation/cubit/staff_qr_scan_cubit.dart';
+import '../../features/qr_verification/presentation/ui/staff_qr_scan_page.dart';
 import '../../features/services/domain/repositories/service_category_repository.dart';
 import '../../features/services/domain/repositories/service_repository.dart';
 import '../../features/services/domain/entities/service_item.dart';
@@ -41,6 +46,8 @@ import '../../features/services/presentation/ui/service_list_page.dart';
 import '../../features/splash/presentation/ui/splash_page.dart';
 import '../../features/staff/presentation/ui/staff_dashboard_page.dart';
 import '../../features/staff/presentation/ui/staff_profile_page.dart';
+import '../../features/staff/presentation/bloc/staff_bookings_bloc.dart';
+import '../../features/staff/presentation/bloc/staff_bookings_event.dart';
 import '../session/app_session_controller.dart';
 
 final class AppRouter {
@@ -48,9 +55,11 @@ final class AppRouter {
     required AppSessionController sessionController,
     required AuthRepository authRepository,
     required BookingRepository bookingRepository,
+    required BookingQrRepository bookingQrRepository,
     required FavoriteRepository favoriteRepository,
     required NotificationRepository notificationRepository,
     required ProfileRepository profileRepository,
+    required LocationRepository locationRepository,
     required ServiceCategoryRepository serviceCategoryRepository,
     required ServiceRepository serviceRepository,
   }) : _sessionController = sessionController,
@@ -258,12 +267,19 @@ final class AppRouter {
            ),
            GoRoute(
              path: '/orders/:bookingId',
-             builder: (context, state) => BlocProvider(
-               create: (_) => BookingDetailBloc(
-                 repository: bookingRepository,
-                 bookingId: state.pathParameters['bookingId'] ?? '',
-                 staffMode: false,
-               )..add(const BookingDetailRequested()),
+             builder: (context, state) => MultiBlocProvider(
+               providers: [
+                 BlocProvider(
+                   create: (_) => BookingDetailBloc(
+                     repository: bookingRepository,
+                     bookingId: state.pathParameters['bookingId'] ?? '',
+                     staffMode: false,
+                   )..add(const BookingDetailRequested()),
+                 ),
+                 BlocProvider(
+                   create: (_) => CustomerQrCubit(bookingQrRepository),
+                 ),
+               ],
                child: const BookingDetailPage(),
              ),
            ),
@@ -293,16 +309,23 @@ final class AppRouter {
              path: '/staff',
              pageBuilder: (context, state) => NoTransitionPage(
                key: state.pageKey,
-               child: StaffDashboardPage(repository: bookingRepository),
+               child: BlocProvider(
+                 create: (_) =>
+                     StaffBookingsBloc(bookingRepository)
+                       ..add(const StaffBookingsRequested()),
+                 child: const StaffDashboardPage(),
+               ),
              ),
            ),
            GoRoute(
              path: '/staff/incoming',
              pageBuilder: (context, state) => NoTransitionPage(
                key: state.pageKey,
-               child: StaffBookingListPage(
-                 repository: bookingRepository,
-                 historyMode: false,
+               child: BlocProvider(
+                 create: (_) =>
+                     StaffBookingsBloc(bookingRepository)
+                       ..add(const StaffBookingsRequested()),
+                 child: const StaffBookingListPage(historyMode: false),
                ),
              ),
            ),
@@ -310,9 +333,11 @@ final class AppRouter {
              path: '/staff/history',
              pageBuilder: (context, state) => NoTransitionPage(
                key: state.pageKey,
-               child: StaffBookingListPage(
-                 repository: bookingRepository,
-                 historyMode: true,
+               child: BlocProvider(
+                 create: (_) =>
+                     StaffBookingsBloc(bookingRepository)
+                       ..add(const StaffBookingsRequested()),
+                 child: const StaffBookingListPage(historyMode: true),
                ),
              ),
            ),
@@ -328,6 +353,20 @@ final class AppRouter {
              ),
            ),
            GoRoute(
+             path: '/staff/bookings/:bookingId/scan',
+             builder: (context, state) => BlocProvider(
+               create: (_) => StaffQrScanCubit(
+                 qrRepository: bookingQrRepository,
+                 locationRepository: locationRepository,
+                 bookingId: state.pathParameters['bookingId'] ?? '',
+               ),
+               child: StaffQrScanPage(
+                 purposeLabel:
+                     state.uri.queryParameters['purpose'] ?? 'pesanan',
+               ),
+             ),
+           ),
+           GoRoute(
              path: '/staff/notifications',
              builder: (context, state) => NotificationPage(
                repository: notificationRepository,
@@ -338,9 +377,14 @@ final class AppRouter {
              path: '/staff/profile',
              pageBuilder: (context, state) => NoTransitionPage(
                key: state.pageKey,
-               child: StaffProfilePage(
-                 profileRepository: profileRepository,
-                 authRepository: authRepository,
+               child: MultiBlocProvider(
+                 providers: [
+                   BlocProvider(
+                     create: (_) => ProfileCubit(profileRepository)..load(),
+                   ),
+                   BlocProvider(create: (_) => AuthBloc(authRepository)),
+                 ],
+                 child: const StaffProfilePage(),
                ),
              ),
            ),

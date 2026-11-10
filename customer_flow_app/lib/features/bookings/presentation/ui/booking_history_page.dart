@@ -5,6 +5,7 @@ import '../../../../libraries/core/formatters/app_formatters.dart';
 import '../../../../libraries/core/localization/app_localizations.dart';
 import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
+import '../../../../libraries/design_system/widgets/app_bar.dart';
 import '../../../../libraries/design_system/widgets/app_bottom_navigation.dart';
 import '../../domain/entities/booking_record.dart';
 import '../../domain/repositories/booking_repository.dart';
@@ -34,9 +35,10 @@ final class _BookingHistoryPageState extends State<BookingHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(context.tr(LanguageKeys.myOrders)),
+      appBar: AppBarWidget(
+        title: LanguageKeys.myOrders,
+        icons: Icons.receipt_long_rounded,
+        subtitle: LanguageKeys.myOrdersSubtitle,
       ),
       body: Column(
         children: [

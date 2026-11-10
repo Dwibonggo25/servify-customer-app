@@ -7,6 +7,7 @@ import '../../../../libraries/core/localization/app_localizations.dart';
 import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
 import '../../../../libraries/design_system/widgets/app_button.dart';
+import '../../../../libraries/design_system/widgets/detail_app_bar.dart';
 import '../../../favorites/presentation/cubit/favorite_cubit.dart';
 import '../../../favorites/presentation/cubit/favorite_state.dart';
 import '../../domain/entities/service_item.dart';
@@ -20,12 +21,13 @@ final class ServiceDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr(LanguageKeys.serviceDetail)),
+      appBar: DetailAppBar(
+        title: context.tr(LanguageKeys.serviceDetail),
+        subtitle: context.tr(LanguageKeys.favoriteCollectionDescription),
         actions: [
           BlocBuilder<FavoriteCubit, FavoriteState>(
             buildWhen: (previous, current) =>
-                previous.contains(service.id) != current.contains(service.id),
+            previous.contains(service.id) != current.contains(service.id),
             builder: (context, state) {
               final isFavorite = state.contains(service.id);
               return IconButton(
