@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../libraries/core/formatters/app_formatters.dart';
+import '../../../../libraries/core/localization/app_localizations.dart';
+import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
 import '../../domain/entities/app_notification.dart';
 import '../../domain/repositories/notification_repository.dart';
@@ -34,7 +36,7 @@ final class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifikasi')),
+      appBar: AppBar(title: Text(context.tr(LanguageKeys.notifications))),
       body: FutureBuilder<List<AppNotification>>(
         future: _future,
         builder: (context, snapshot) {
@@ -46,13 +48,15 @@ final class _NotificationPageState extends State<NotificationPage> {
               child: FilledButton.icon(
                 onPressed: () => setState(_reload),
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Coba lagi'),
+                label: Text(context.tr(LanguageKeys.retry)),
               ),
             );
           }
           final items = snapshot.data ?? const <AppNotification>[];
           if (items.isEmpty) {
-            return const Center(child: Text('Belum ada notifikasi.'));
+            return Center(
+              child: Text(context.tr(LanguageKeys.noNotifications)),
+            );
           }
           return RefreshIndicator(
             onRefresh: () async {

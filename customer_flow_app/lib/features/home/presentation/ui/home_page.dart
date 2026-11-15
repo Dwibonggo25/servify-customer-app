@@ -100,6 +100,8 @@ final class HomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+            _AiAssistantCard(onTap: () => context.push('/ai-assistant')),
+            const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -243,6 +245,62 @@ final class HomePage extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
   }
+}
+
+final class _AiAssistantCard extends StatelessWidget {
+  const _AiAssistantCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: const Color(0xFFF3F0FF),
+    borderRadius: BorderRadius.circular(20),
+    child: InkWell(
+      key: const Key('open_ai_assistant'),
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.auto_awesome_rounded,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.tr(LanguageKeys.askServifyAi),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    context.tr(LanguageKeys.aiHomeDescription),
+                    style: const TextStyle(color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 final class _CategoryLoadError extends StatelessWidget {

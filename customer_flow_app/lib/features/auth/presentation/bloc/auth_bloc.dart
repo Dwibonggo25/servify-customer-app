@@ -11,7 +11,32 @@ final class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(this._authRepository) : super(const AuthState()) {
     on<LoginSubmitted>(_onLoginSubmitted);
     on<RegisterSubmitted>(_onRegisterSubmitted);
+    on<GoogleSignInRequested>(_onGoogleSignInRequested);
     on<SignOutRequested>(_onSignOutRequested);
+  }
+
+  Future<void> _onGoogleSignInRequested(
+    GoogleSignInRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthState(status: AuthSubmissionStatus.loading));
+    try {
+      await _authRepository.signInWithGoogle();
+      emit(const AuthState(status: AuthSubmissionStatus.oauthPending));
+    } on AuthException catch (error) {
+      emit(
+        AuthState(status: AuthSubmissionStatus.failure, message: error.message),
+      );
+    } catch (_) {
+      emit(
+        AuthState(
+          status: AuthSubmissionStatus.failure,
+          message: LanguageController.instance.translate(
+            LanguageKeys.googleSignInFailed,
+          ),
+        ),
+      );
+    }
   }
 
   final AuthRepository _authRepository;

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../libraries/core/localization/app_localizations.dart';
+import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
 import '../bloc/staff_bookings_bloc.dart';
 import '../bloc/staff_bookings_event.dart';
@@ -17,14 +19,14 @@ final class StaffDashboardPage extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xFFF8F8FC),
     appBar: StaffGradientAppBar(
-      title: 'Dashboard Staff',
-      subtitle: 'Kelola pekerjaan dan pantau progres hari ini',
+      title: context.tr(LanguageKeys.staffDashboard),
+      subtitle: context.tr(LanguageKeys.staffDashboardSubtitle),
       icon: Icons.dashboard_customize_rounded,
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 10),
           child: IconButton.filledTonal(
-            tooltip: 'Notifikasi',
+            tooltip: context.tr(LanguageKeys.notifications),
             onPressed: () => context.push('/staff/notifications'),
             style: IconButton.styleFrom(
               backgroundColor: Colors.white.withValues(alpha: 0.16),
@@ -60,16 +62,16 @@ final class StaffDashboardPage extends StatelessWidget {
                 onTap: () => context.go('/staff/incoming'),
               ),
               const SizedBox(height: 24),
-              const _SectionTitle(
-                title: 'Ringkasan pekerjaan',
-                subtitle: 'Aktivitas akun Anda saat ini',
+              _SectionTitle(
+                title: context.tr(LanguageKeys.workSummary),
+                subtitle: context.tr(LanguageKeys.currentAccountActivity),
               ),
               const SizedBox(height: 14),
               Row(
                 children: [
                   Expanded(
                     child: _MetricCard(
-                      label: 'Baru',
+                      label: context.tr(LanguageKeys.newLabel),
                       value: state.available.length,
                       icon: Icons.mark_email_unread_rounded,
                       color: const Color(0xFFF59E0B),
@@ -78,7 +80,7 @@ final class StaffDashboardPage extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _MetricCard(
-                      label: 'Aktif',
+                      label: context.tr(LanguageKeys.active),
                       value: state.active.length,
                       icon: Icons.handyman_rounded,
                       color: AppColors.primary,
@@ -87,7 +89,7 @@ final class StaffDashboardPage extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _MetricCard(
-                      label: 'Selesai',
+                      label: context.tr(LanguageKeys.completed),
                       value: state.completedCount,
                       icon: Icons.task_alt_rounded,
                       color: AppColors.success,
@@ -97,18 +99,17 @@ final class StaffDashboardPage extends StatelessWidget {
               ),
               const SizedBox(height: 28),
               _SectionTitle(
-                title: 'Pekerjaan aktif',
-                subtitle: 'Pesanan yang sedang Anda tangani',
-                actionLabel: 'Lihat semua',
+                title: context.tr(LanguageKeys.activeWork),
+                subtitle: context.tr(LanguageKeys.activeWorkDescription),
+                actionLabel: context.tr(LanguageKeys.seeAll),
                 onAction: () => context.go('/staff/incoming'),
               ),
               const SizedBox(height: 14),
               if (state.active.isEmpty)
-                const _EmptyCard(
+                _EmptyCard(
                   icon: Icons.work_history_outlined,
-                  title: 'Belum ada pekerjaan aktif',
-                  subtitle:
-                      'Terima pesanan masuk untuk mulai mengerjakan layanan.',
+                  title: context.tr(LanguageKeys.noActiveWork),
+                  subtitle: context.tr(LanguageKeys.noActiveWorkDescription),
                 )
               else
                 ...state.active
@@ -144,10 +145,12 @@ final class StaffBookingListPage extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xFFF8F8FC),
     appBar: StaffGradientAppBar(
-      title: historyMode ? 'Riwayat Pekerjaan' : 'Pesanan Masuk',
+      title: context.tr(
+        historyMode ? LanguageKeys.workHistory : LanguageKeys.incomingOrders,
+      ),
       subtitle: historyMode
-          ? 'Lihat kembali pekerjaan yang telah ditangani'
-          : 'Pilih pesanan dan berikan respons dengan cepat',
+          ? context.tr(LanguageKeys.workHistoryDescription)
+          : context.tr(LanguageKeys.incomingOrdersDescription),
       icon: historyMode ? Icons.history_rounded : Icons.inbox_rounded,
     ),
     body: BlocBuilder<StaffBookingsBloc, StaffBookingsState>(
@@ -178,10 +181,18 @@ final class StaffBookingListPage extends StatelessWidget {
               ),
               const SizedBox(height: 22),
               _SectionTitle(
-                title: historyMode ? 'Semua riwayat' : 'Daftar pesanan',
+                title: context.tr(
+                  historyMode
+                      ? LanguageKeys.allHistory
+                      : LanguageKeys.orderList,
+                ),
                 subtitle: historyMode
-                    ? '${items.length} pekerjaan ditemukan'
-                    : '${state.available.length} pesanan baru menunggu respons',
+                    ? context.tr(LanguageKeys.workFound, {
+                        'count': items.length,
+                      })
+                    : context.tr(LanguageKeys.newOrdersWaiting, {
+                        'count': state.available.length,
+                      }),
               ),
               const SizedBox(height: 14),
               if (items.isEmpty)
@@ -190,11 +201,11 @@ final class StaffBookingListPage extends StatelessWidget {
                       ? Icons.history_toggle_off_rounded
                       : Icons.inbox_outlined,
                   title: historyMode
-                      ? 'Belum ada riwayat pekerjaan'
-                      : 'Belum ada pesanan masuk',
+                      ? context.tr(LanguageKeys.noWorkHistory)
+                      : context.tr(LanguageKeys.noIncomingOrders),
                   subtitle: historyMode
-                      ? 'Pekerjaan yang selesai akan muncul di halaman ini.'
-                      : 'Tarik ke bawah untuk memeriksa pesanan terbaru.',
+                      ? context.tr(LanguageKeys.completedWorkAppear)
+                      : context.tr(LanguageKeys.pullLatestOrders),
                 )
               else
                 ...items.map(
@@ -266,8 +277,10 @@ final class _OpportunityBanner extends StatelessWidget {
             children: [
               Text(
                 count == 0
-                    ? 'Tidak ada pesanan baru'
-                    : '$count pesanan baru tersedia',
+                    ? context.tr(LanguageKeys.noNewOrders)
+                    : context.tr(LanguageKeys.newOrdersAvailable, {
+                        'count': count,
+                      }),
                 style: const TextStyle(
                   color: Color(0xFF78350F),
                   fontSize: 16,
@@ -277,8 +290,8 @@ final class _OpportunityBanner extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 count == 0
-                    ? 'Kami akan memberi tahu saat ada pekerjaan baru.'
-                    : 'Periksa detail dan ambil pekerjaan yang sesuai.',
+                    ? context.tr(LanguageKeys.newWorkNotify)
+                    : context.tr(LanguageKeys.checkAndTakeWork),
                 style: const TextStyle(color: Color(0xFF92400E), fontSize: 12),
               ),
             ],
@@ -339,7 +352,12 @@ final class _ListSummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$count ${historyMode ? 'pekerjaan selesai' : 'pesanan aktif'}',
+                  context.tr(
+                    historyMode
+                        ? LanguageKeys.completedWorkCount
+                        : LanguageKeys.activeOrderCount,
+                    {'count': count},
+                  ),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
@@ -348,8 +366,10 @@ final class _ListSummaryCard extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   historyMode
-                      ? 'Dokumentasi pekerjaan Anda'
-                      : '$newCount di antaranya merupakan pesanan baru',
+                      ? context.tr(LanguageKeys.workDocumentation)
+                      : context.tr(LanguageKeys.newOrdersAmong, {
+                          'count': newCount,
+                        }),
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
@@ -531,14 +551,17 @@ final class _ErrorView extends StatelessWidget {
             color: AppColors.textSecondary,
           ),
           const SizedBox(height: 14),
-          Text(message ?? 'Pesanan gagal dimuat.', textAlign: TextAlign.center),
+          Text(
+            message ?? context.tr(LanguageKeys.ordersLoadFailed),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () => context.read<StaffBookingsBloc>().add(
               const StaffBookingsRequested(),
             ),
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Coba lagi'),
+            label: Text(context.tr(LanguageKeys.retry)),
           ),
         ],
       ),
@@ -564,7 +587,7 @@ final class _SyncErrorBanner extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: Text(
-            message ?? 'Data terbaru gagal disinkronkan.',
+            message ?? context.tr(LanguageKeys.latestDataSyncFailed),
             style: const TextStyle(fontSize: 12),
           ),
         ),

@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/booking_draft.dart';
 import '../../domain/entities/booking_record.dart';
+import '../../domain/entities/booking_review.dart';
 import '../../domain/repositories/booking_repository.dart';
 import '../datasources/staff_booking_remote_data_source.dart';
 
@@ -189,6 +190,38 @@ final class SupabaseBookingRepository implements BookingRepository {
     );
   }
 
+  @override
+  Future<BookingReview?> getBookingReview(String bookingId) async {
+    final row = await _client
+        .from('service_reviews')
+        .select(
+          'id, booking_id, service_id, rating, comment, created_at, updated_at',
+        )
+        .eq('booking_id', bookingId)
+        .maybeSingle();
+    return row == null ? null : _mapReview(row);
+  }
+
+  @override
+  Future<BookingReview> submitBookingReview({
+    required String bookingId,
+    required int rating,
+    String? comment,
+  }) async {
+    final response = await _client.rpc<List<dynamic>>(
+      'submit_service_review',
+      params: {
+        'p_booking_id': bookingId,
+        'p_rating': rating,
+        'p_comment': comment?.trim().isEmpty == true ? null : comment?.trim(),
+      },
+    );
+    if (response.isEmpty) {
+      throw StateError('Review tidak berhasil disimpan.');
+    }
+    return _mapReview(response.first as Map<String, dynamic>);
+  }
+
   Future<List<BookingRecord>> _getBookings() async {
     final rows = await _client
         .from('bookings')
@@ -255,6 +288,16 @@ final class SupabaseBookingRepository implements BookingRepository {
       history: history,
     );
   }
+
+  BookingReview _mapReview(Map<String, dynamic> row) => BookingReview(
+    id: row['id'] as String,
+    bookingId: row['booking_id'] as String,
+    serviceId: row['service_id'] as String,
+    rating: (row['rating'] as num).toInt(),
+    comment: row['comment'] as String?,
+    createdAt: DateTime.parse(row['created_at'] as String).toLocal(),
+    updatedAt: DateTime.parse(row['updated_at'] as String).toLocal(),
+  );
 
   DateTime _scheduledAt(DateTime date, String timeLabel) {
     final parts = timeLabel.split('.');

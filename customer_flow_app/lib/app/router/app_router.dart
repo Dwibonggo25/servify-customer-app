@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/ai_assistant/domain/repositories/ai_repository.dart';
+import '../../features/ai_assistant/presentation/cubit/ai_assistant_cubit.dart';
+import '../../features/ai_assistant/presentation/ui/ai_assistant_page.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/admin/presentation/bloc/admin_service_bloc.dart';
 import '../../features/admin/presentation/bloc/admin_service_event.dart';
@@ -53,6 +56,7 @@ import '../session/app_session_controller.dart';
 final class AppRouter {
   AppRouter({
     required AppSessionController sessionController,
+    required AiRepository aiRepository,
     required AuthRepository authRepository,
     required BookingRepository bookingRepository,
     required BookingQrRepository bookingQrRepository,
@@ -176,6 +180,13 @@ final class AppRouter {
                  ],
                  child: HomePage(sessionController: sessionController),
                ),
+             ),
+           ),
+           GoRoute(
+             path: '/ai-assistant',
+             builder: (context, state) => BlocProvider(
+               create: (_) => AiAssistantCubit(aiRepository),
+               child: const AiAssistantPage(),
              ),
            ),
            GoRoute(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../libraries/core/formatters/app_formatters.dart';
+import '../../../../libraries/core/localization/app_localizations.dart';
+import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
 import '../../../bookings/domain/entities/booking_record.dart';
 import '../../../bookings/presentation/widgets/booking_status_badge.dart';
@@ -55,20 +57,20 @@ final class StaffBookingCard extends StatelessWidget {
                       vertical: 9,
                     ),
                     color: accent.withValues(alpha: 0.1),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.fiber_new_rounded,
                           size: 19,
                           color: Color(0xFFB45309),
                         ),
-                        SizedBox(width: 7),
+                        const SizedBox(width: 7),
                         Expanded(
                           child: Text(
-                            'Pesanan baru — menunggu respons Anda',
+                            context.tr(LanguageKeys.newOrderAwaitingResponse),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Color(0xFF92400E),
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
@@ -173,9 +175,9 @@ final class StaffBookingCard extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Nilai pekerjaan',
-                                  style: TextStyle(
+                                Text(
+                                  context.tr(LanguageKeys.workValue),
+                                  style: const TextStyle(
                                     color: AppColors.textSecondary,
                                     fontSize: 11,
                                   ),
@@ -201,18 +203,18 @@ final class StaffBookingCard extends StatelessWidget {
                               color: AppColors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Row(
+                            child: Row(
                               children: [
                                 Text(
-                                  'Lihat detail',
-                                  style: TextStyle(
+                                  context.tr(LanguageKeys.viewDetails),
+                                  style: const TextStyle(
                                     color: AppColors.primary,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
-                                SizedBox(width: 4),
-                                Icon(
+                                const SizedBox(width: 4),
+                                const Icon(
                                   Icons.arrow_forward_rounded,
                                   size: 16,
                                   color: AppColors.primary,

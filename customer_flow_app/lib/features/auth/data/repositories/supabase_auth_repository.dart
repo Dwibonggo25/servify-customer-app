@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/app_user.dart';
@@ -7,6 +8,8 @@ final class SupabaseAuthRepository implements AuthRepository {
   const SupabaseAuthRepository(this._client);
 
   final SupabaseClient _client;
+
+  static const _mobileOAuthRedirect = 'com.dwibonggo.servify://login-callback';
 
   @override
   AppUser? get currentUser => _mapUser(_client.auth.currentUser);
@@ -44,6 +47,18 @@ final class SupabaseAuthRepository implements AuthRepository {
       data: {'full_name': fullName.trim(), 'role': 'customer'},
     );
     return _mapUser(response.session?.user);
+  }
+
+  @override
+  Future<void> signInWithGoogle() async {
+    final launched = await _client.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: kIsWeb ? null : _mobileOAuthRedirect,
+      queryParams: const {'prompt': 'select_account'},
+    );
+    if (!launched) {
+      throw const AuthException('Unable to open Google sign-in.');
+    }
   }
 
   @override

@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../libraries/core/localization/app_localizations.dart';
+import '../../../../libraries/core/localization/language_controller.dart';
+import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
 import '../../../../libraries/design_system/widgets/app_button.dart';
 import '../../../../libraries/design_system/widgets/app_text_field.dart';
+import '../../../../libraries/design_system/widgets/language_selection_sheet.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -42,7 +46,11 @@ final class StaffProfilePage extends StatelessWidget {
             context.go('/login');
           } else if (state.status == AuthSubmissionStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message ?? 'Gagal keluar akun.')),
+              SnackBar(
+                content: Text(
+                  state.message ?? context.tr(LanguageKeys.logoutFailed),
+                ),
+              ),
             );
           }
         },
@@ -50,9 +58,9 @@ final class StaffProfilePage extends StatelessWidget {
     ],
     child: Scaffold(
       backgroundColor: const Color(0xFFF8F8FC),
-      appBar: const StaffGradientAppBar(
-        title: 'Profil Staff',
-        subtitle: 'Kelola identitas dan pengaturan akun Anda',
+      appBar: StaffGradientAppBar(
+        title: context.tr(LanguageKeys.staffProfile),
+        subtitle: context.tr(LanguageKeys.staffProfileSubtitle),
         icon: Icons.badge_outlined,
       ),
       body: BlocBuilder<ProfileCubit, ProfileState>(
@@ -85,49 +93,58 @@ final class _ProfileContent extends StatelessWidget {
     children: [
       _ProfileHero(profile: profile),
       const SizedBox(height: 22),
-      const _SectionTitle(
-        title: 'Informasi akun',
-        subtitle: 'Data yang digunakan pada pekerjaan Anda',
+      _SectionTitle(
+        title: context.tr(LanguageKeys.accountInformation),
+        subtitle: context.tr(LanguageKeys.staffAccountInformationDescription),
       ),
       const SizedBox(height: 12),
       _InformationCard(profile: profile),
       const SizedBox(height: 24),
-      const _SectionTitle(
-        title: 'Pengaturan',
-        subtitle: 'Kelola preferensi dan keamanan akun',
+      _SectionTitle(
+        title: context.tr(LanguageKeys.settings),
+        subtitle: context.tr(LanguageKeys.staffSettingsDescription),
       ),
       const SizedBox(height: 12),
       _MenuCard(
         children: [
           _MenuTile(
             icon: Icons.edit_outlined,
-            title: 'Edit profil',
-            subtitle: 'Ubah nama lengkap dan nomor telepon',
+            title: context.tr(LanguageKeys.editProfile),
+            subtitle: context.tr(LanguageKeys.editProfileMenuDescription),
             onTap: () => _openEditProfile(context, profile),
           ),
           const Divider(height: 1, indent: 68),
           _MenuTile(
             icon: Icons.notifications_none_rounded,
-            title: 'Notifikasi pekerjaan',
-            subtitle: 'Lihat pembaruan pesanan dan pekerjaan',
+            title: context.tr(LanguageKeys.workNotifications),
+            subtitle: context.tr(LanguageKeys.workNotificationsDescription),
             onTap: () => context.push('/staff/notifications'),
           ),
           const Divider(height: 1, indent: 68),
           _MenuTile(
             icon: Icons.shield_outlined,
-            title: 'Keamanan akun',
-            subtitle: 'Password dan keamanan akses akun',
+            title: context.tr(LanguageKeys.accountSecurity),
+            subtitle: context.tr(LanguageKeys.staffSecurityDescription),
             onTap: () => _showMessage(
               context,
-              'Pengaturan keamanan akan tersedia pada tahap berikutnya.',
+              context.tr(LanguageKeys.securityComingSoon),
             ),
+          ),
+          const Divider(height: 1, indent: 68),
+          _MenuTile(
+            icon: Icons.language_rounded,
+            title: context.tr(LanguageKeys.language),
+            subtitle: LanguageController.instance.value.languageCode == 'en'
+                ? context.tr(LanguageKeys.english)
+                : context.tr(LanguageKeys.indonesian),
+            onTap: () => _openLanguageSheet(context),
           ),
         ],
       ),
       const SizedBox(height: 24),
       BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) => AppButton(
-          label: 'Keluar dari akun',
+          label: context.tr(LanguageKeys.logoutAccount),
           icon: Icons.logout_rounded,
           isOutlined: true,
           isLoading: state.isLoading,
@@ -135,8 +152,8 @@ final class _ProfileContent extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 10),
-      const Text(
-        'Servify Staff • Akun terhubung dan terlindungi',
+      Text(
+        context.tr(LanguageKeys.staffFooter),
         textAlign: TextAlign.center,
         style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
       ),
@@ -162,19 +179,17 @@ final class _ProfileContent extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-        title: const Text('Keluar dari akun?'),
-        content: const Text(
-          'Anda harus masuk kembali untuk menerima dan mengelola pekerjaan.',
-        ),
+        title: Text(context.tr(LanguageKeys.logoutQuestion)),
+        content: Text(context.tr(LanguageKeys.staffLogoutWarning)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Batal'),
+            child: Text(context.tr(LanguageKeys.cancel)),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Keluar'),
+            child: Text(context.tr(LanguageKeys.logout)),
           ),
         ],
       ),
@@ -183,6 +198,13 @@ final class _ProfileContent extends StatelessWidget {
       context.read<AuthBloc>().add(const SignOutRequested());
     }
   }
+
+  Future<void> _openLanguageSheet(BuildContext context) =>
+      showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        builder: (_) => const LanguageSelectionSheet(),
+      );
 
   void _showMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
@@ -266,7 +288,9 @@ final class _ProfileHero extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            profile.fullName.isEmpty ? 'Staff Servify' : profile.fullName,
+            profile.fullName.isEmpty
+                ? context.tr(LanguageKeys.staffDefaultName)
+                : profile.fullName,
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -287,20 +311,20 @@ final class _ProfileHero extends StatelessWidget {
             alignment: WrapAlignment.center,
             spacing: 8,
             runSpacing: 8,
-            children: const [
+            children: [
               _ProfileBadge(
                 icon: Icons.badge_outlined,
-                label: 'Staff',
+                label: context.tr(LanguageKeys.staff),
                 color: AppColors.primary,
               ),
               _ProfileBadge(
                 icon: Icons.verified_rounded,
-                label: 'Terverifikasi',
+                label: context.tr(LanguageKeys.verified),
                 color: AppColors.success,
               ),
               _ProfileBadge(
                 icon: Icons.circle,
-                label: 'Aktif',
+                label: context.tr(LanguageKeys.active),
                 color: AppColors.secondary,
               ),
             ],
@@ -363,30 +387,30 @@ final class _InformationCard extends StatelessWidget {
       children: [
         _InfoTile(
           icon: Icons.person_outline_rounded,
-          label: 'Nama lengkap',
+          label: context.tr(LanguageKeys.fullName),
           value: profile.fullName.isEmpty
-              ? 'Belum ditambahkan'
+              ? context.tr(LanguageKeys.notAdded)
               : profile.fullName,
         ),
         const Divider(height: 1, indent: 66),
         _InfoTile(
           icon: Icons.email_outlined,
-          label: 'Email',
+          label: context.tr(LanguageKeys.email),
           value: profile.email,
         ),
         const Divider(height: 1, indent: 66),
         _InfoTile(
           icon: Icons.phone_outlined,
-          label: 'Nomor telepon',
+          label: context.tr(LanguageKeys.phoneNumber),
           value: profile.phone?.trim().isNotEmpty == true
               ? profile.phone!
-              : 'Belum ditambahkan',
+              : context.tr(LanguageKeys.notAdded),
         ),
         const Divider(height: 1, indent: 66),
-        const _InfoTile(
+        _InfoTile(
           icon: Icons.admin_panel_settings_outlined,
-          label: 'Peran akun',
-          value: 'Staff layanan',
+          label: context.tr(LanguageKeys.accountRole),
+          value: context.tr(LanguageKeys.serviceStaff),
         ),
       ],
     ),
@@ -578,41 +602,45 @@ final class _EditStaffProfileSheetState extends State<_EditStaffProfileSheet> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Edit profil staff',
+              context.tr(LanguageKeys.editStaffProfile),
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 5),
-            const Text(
-              'Pastikan customer dapat mengenali identitas Anda.',
-              style: TextStyle(color: AppColors.textSecondary),
+            Text(
+              context.tr(LanguageKeys.editStaffProfileDescription),
+              style: const TextStyle(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 22),
             AppTextField(
               controller: _nameController,
-              label: 'Nama lengkap',
+              label: context.tr(LanguageKeys.fullName),
               prefixIcon: Icons.person_outline_rounded,
               textInputAction: TextInputAction.next,
               validator: (value) {
                 final name = value?.trim() ?? '';
-                if (name.isEmpty) return 'Nama lengkap wajib diisi.';
-                if (name.length > 120) return 'Nama terlalu panjang.';
+                if (name.isEmpty) {
+                  return context.tr(LanguageKeys.nameRequired);
+                }
+                if (name.length > 120) {
+                  return context.tr(LanguageKeys.nameTooLong);
+                }
                 return null;
               },
             ),
             const SizedBox(height: 14),
             AppTextField(
               controller: _phoneController,
-              label: 'Nomor telepon',
-              hint: 'Contoh: 08123456789',
+              label: context.tr(LanguageKeys.phoneNumber),
+              hint: context.tr(LanguageKeys.phoneExample),
               prefixIcon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
               textInputAction: TextInputAction.done,
               validator: (value) {
                 final phone = value?.replaceAll(RegExp(r'\D'), '') ?? '';
                 if (phone.isNotEmpty && phone.length < 9) {
-                  return 'Nomor telepon tidak valid.';
+                  return context.tr(LanguageKeys.invalidPhone);
                 }
                 return null;
               },
@@ -620,7 +648,7 @@ final class _EditStaffProfileSheetState extends State<_EditStaffProfileSheet> {
             const SizedBox(height: 22),
             BlocBuilder<ProfileCubit, ProfileState>(
               builder: (context, state) => AppButton(
-                label: 'Simpan perubahan',
+                label: context.tr(LanguageKeys.saveChanges),
                 icon: Icons.save_outlined,
                 isLoading: state.isSaving,
                 onPressed: _submit,
@@ -661,15 +689,15 @@ final class _ProfileErrorView extends StatelessWidget {
             color: AppColors.textSecondary,
           ),
           const SizedBox(height: 14),
-          const Text(
-            'Profil staff gagal dimuat.',
-            style: TextStyle(fontWeight: FontWeight.w800),
+          Text(
+            context.tr(LanguageKeys.staffProfileLoadFailed),
+            style: const TextStyle(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () => context.read<ProfileCubit>().load(),
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Coba lagi'),
+            label: Text(context.tr(LanguageKeys.retry)),
           ),
         ],
       ),

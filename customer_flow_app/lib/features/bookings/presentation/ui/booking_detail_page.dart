@@ -11,6 +11,7 @@ import '../../../../libraries/design_system/widgets/detail_app_bar.dart';
 import '../../../services/presentation/widgets/service_image.dart';
 import '../../../qr_verification/presentation/widgets/customer_booking_qr_card.dart';
 import '../../domain/entities/booking_record.dart';
+import '../../domain/entities/booking_review.dart';
 import '../bloc/booking_detail_bloc.dart';
 import '../bloc/booking_detail_event.dart';
 import '../bloc/booking_detail_state.dart';
@@ -28,7 +29,9 @@ final class BookingDetailPage extends StatelessWidget {
         if (state.status == BookingDetailStatus.actionSuccess) {
           _showMessage(
             context,
-            state.message ?? context.tr(LanguageKeys.actionSucceeded),
+            state.message ??
+                _feedbackMessage(context, state.feedback) ??
+                context.tr(LanguageKeys.actionSucceeded),
           );
           if (state.shouldPop) Navigator.of(context).pop(true);
         } else if (state.status == BookingDetailStatus.failure &&
@@ -75,10 +78,31 @@ final class BookingDetailPage extends StatelessWidget {
       booking: booking,
       staffMode: staffMode,
       submitting: state.isSubmitting,
+      review: state.review,
       realtimeConnected: state.realtimeConnected,
       realtimeFailed: state.realtimeFailed,
     );
   }
+
+  String? _feedbackMessage(
+    BuildContext context,
+    BookingDetailFeedback? feedback,
+  ) => switch (feedback) {
+    BookingDetailFeedback.bookingRejected => context.tr(
+      LanguageKeys.bookingRejected,
+    ),
+    BookingDetailFeedback.bookingAccepted => context.tr(
+      LanguageKeys.bookingAccepted,
+    ),
+    BookingDetailFeedback.progressUpdated => context.tr(
+      LanguageKeys.progressUpdated,
+    ),
+    BookingDetailFeedback.bookingCancelled => context.tr(
+      LanguageKeys.bookingCancelled,
+    ),
+    BookingDetailFeedback.reviewSaved => context.tr(LanguageKeys.reviewSaved),
+    null => null,
+  };
 
   void _showMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
@@ -92,6 +116,7 @@ final class _BookingDetailContent extends StatelessWidget {
     required this.booking,
     required this.staffMode,
     required this.submitting,
+    required this.review,
     required this.realtimeConnected,
     required this.realtimeFailed,
   });
@@ -99,6 +124,7 @@ final class _BookingDetailContent extends StatelessWidget {
   final BookingRecord booking;
   final bool staffMode;
   final bool submitting;
+  final BookingReview? review;
   final bool realtimeConnected;
   final bool realtimeFailed;
 
@@ -126,6 +152,10 @@ final class _BookingDetailContent extends StatelessWidget {
           : _HelpSection(booking: booking, submitting: submitting),
       const SizedBox(height: 16),
       _PaymentSection(booking: booking),
+      if (!staffMode && booking.status == 'completed') ...[
+        const SizedBox(height: 16),
+        _ReviewSection(review: review, submitting: submitting),
+      ],
     ],
   );
 }
@@ -209,7 +239,6 @@ final class _RealtimeIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
     children: [
       Container(
         width: 8,
@@ -224,20 +253,22 @@ final class _RealtimeIndicator extends StatelessWidget {
         ),
       ),
       const SizedBox(width: 7),
-      Text(
-        connected
-            ? context.tr(LanguageKeys.realtimeActive)
-            : failed
-            ? context.tr(LanguageKeys.realtimeDisconnected)
-            : context.tr(LanguageKeys.realtimeConnecting),
-        style: TextStyle(
-          color: connected
-              ? AppColors.success
+      Expanded(
+        child: Text(
+          connected
+              ? context.tr(LanguageKeys.realtimeActive)
               : failed
-              ? AppColors.error
-              : AppColors.textSecondary,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
+              ? context.tr(LanguageKeys.realtimeDisconnected)
+              : context.tr(LanguageKeys.realtimeConnecting),
+          style: TextStyle(
+            color: connected
+                ? AppColors.success
+                : failed
+                ? AppColors.error
+                : AppColors.textSecondary,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     ],
@@ -545,6 +576,125 @@ final class _PaymentSection extends StatelessWidget {
       };
 }
 
+final class _ReviewSection extends StatefulWidget {
+  const _ReviewSection({required this.review, required this.submitting});
+
+  final BookingReview? review;
+  final bool submitting;
+
+  @override
+  State<_ReviewSection> createState() => _ReviewSectionState();
+}
+
+final class _ReviewSectionState extends State<_ReviewSection> {
+  late final TextEditingController _commentController;
+  late int _rating;
+
+  @override
+  void initState() {
+    super.initState();
+    _rating = widget.review?.rating ?? 0;
+    _commentController = TextEditingController(text: widget.review?.comment);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ReviewSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.review != widget.review && widget.review != null) {
+      _rating = widget.review!.rating;
+      _commentController.text = widget.review!.comment ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => _SectionCard(
+    title: context.tr(LanguageKeys.reviewAndRating),
+    icon: Icons.reviews_rounded,
+    children: [
+      Text(
+        widget.review == null
+            ? context.tr(LanguageKeys.reviewAndRatingDescription)
+            : context.tr(LanguageKeys.reviewSubmittedDescription),
+        style: const TextStyle(color: AppColors.textSecondary, height: 1.4),
+      ),
+      const SizedBox(height: 18),
+      Text(
+        context.tr(LanguageKeys.yourRating),
+        style: const TextStyle(fontWeight: FontWeight.w800),
+      ),
+      const SizedBox(height: 8),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(5, (index) {
+          final value = index + 1;
+          final selected = value <= _rating;
+          return IconButton(
+            tooltip: '$value/5',
+            onPressed: widget.submitting
+                ? null
+                : () => setState(() => _rating = value),
+            iconSize: 36,
+            visualDensity: VisualDensity.compact,
+            icon: Icon(
+              selected ? Icons.star_rounded : Icons.star_border_rounded,
+              color: selected ? const Color(0xFFF59E0B) : AppColors.border,
+            ),
+          );
+        }),
+      ),
+      const SizedBox(height: 14),
+      TextField(
+        controller: _commentController,
+        enabled: !widget.submitting,
+        minLines: 3,
+        maxLines: 5,
+        maxLength: 1000,
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(
+          labelText: context.tr(LanguageKeys.reviewComment),
+          hintText: context.tr(LanguageKeys.reviewCommentHint),
+          alignLabelWithHint: true,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      ),
+      const SizedBox(height: 8),
+      AppButton(
+        label: context.tr(
+          widget.review == null
+              ? LanguageKeys.submitReview
+              : LanguageKeys.updateReview,
+        ),
+        icon: Icons.send_rounded,
+        isLoading: widget.submitting,
+        onPressed: _submit,
+      ),
+    ],
+  );
+
+  void _submit() {
+    if (_rating == 0) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(context.tr(LanguageKeys.ratingRequired))),
+        );
+      return;
+    }
+    context.read<BookingDetailBloc>().add(
+      BookingReviewSubmitted(
+        rating: _rating,
+        comment: _commentController.text.trim(),
+      ),
+    );
+  }
+}
+
 final class _SectionCard extends StatelessWidget {
   const _SectionCard({
     required this.title,
@@ -559,11 +709,11 @@ final class _SectionCard extends StatelessWidget {
   final EdgeInsetsGeometry padding;
 
   @override
-  Widget build(BuildContext context) => Container(
-    decoration: BoxDecoration(
-      color: AppColors.surface,
+  Widget build(BuildContext context) => Material(
+    color: AppColors.surface,
+    shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(22),
-      border: Border.all(color: AppColors.border),
+      side: const BorderSide(color: AppColors.border),
     ),
     clipBehavior: Clip.antiAlias,
     child: Column(
@@ -575,11 +725,15 @@ final class _SectionCard extends StatelessWidget {
             children: [
               Icon(icon, size: 21, color: AppColors.primary),
               const SizedBox(width: 10),
-              Text(
-                title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
               ),
             ],
           ),

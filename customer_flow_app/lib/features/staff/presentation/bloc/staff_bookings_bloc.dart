@@ -42,11 +42,7 @@ final class StaffBookingsBloc
         stackTrace: stackTrace,
       );
       emit(
-        state.copyWith(
-          status: StaffBookingsStatus.failure,
-          message: 'Pesanan gagal dimuat. Periksa koneksi lalu coba kembali.',
-          refreshing: false,
-        ),
+        state.copyWith(status: StaffBookingsStatus.failure, refreshing: false),
       );
     }
   }

@@ -35,6 +35,16 @@ final class BookingCancellationSubmitted extends BookingDetailEvent {
   const BookingCancellationSubmitted();
 }
 
+final class BookingReviewSubmitted extends BookingDetailEvent {
+  const BookingReviewSubmitted({required this.rating, this.comment});
+
+  final int rating;
+  final String? comment;
+
+  @override
+  List<Object?> get props => [rating, comment];
+}
+
 final class BookingRealtimeUpdated extends BookingDetailEvent {
   const BookingRealtimeUpdated(this.booking);
 

@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/booking_record.dart';
+import '../../domain/entities/booking_review.dart';
 import '../../domain/repositories/booking_repository.dart';
 import 'booking_detail_event.dart';
 import 'booking_detail_state.dart';
@@ -22,6 +23,7 @@ final class BookingDetailBloc
     on<BookingResponseSubmitted>(_onResponseSubmitted);
     on<BookingProgressSubmitted>(_onProgressSubmitted);
     on<BookingCancellationSubmitted>(_onCancellationSubmitted);
+    on<BookingReviewSubmitted>(_onReviewSubmitted);
     on<BookingRealtimeUpdated>(_onRealtimeUpdated);
     on<BookingRealtimeDisconnected>(_onRealtimeDisconnected);
   }
@@ -35,6 +37,13 @@ final class BookingDetailBloc
       ? _repository.getStaffBooking(_bookingId)
       : _repository.getCustomerBooking(_bookingId);
 
+  Future<BookingReview?> _loadReview(BookingRecord? booking) {
+    if (_staffMode || booking?.status != 'completed') {
+      return Future.value();
+    }
+    return _repository.getBookingReview(_bookingId);
+  }
+
   Future<void> _onRequested(
     BookingDetailRequested event,
     Emitter<BookingDetailState> emit,
@@ -42,10 +51,12 @@ final class BookingDetailBloc
     emit(state.copyWith(status: BookingDetailStatus.loading));
     try {
       final booking = await _load();
+      final review = await _loadReview(booking);
       emit(
         BookingDetailState(
           status: BookingDetailStatus.success,
           booking: booking,
+          review: review,
         ),
       );
       if (!_staffMode) await _startRealtimeTracking();
@@ -54,7 +65,7 @@ final class BookingDetailBloc
       emit(
         state.copyWith(
           status: BookingDetailStatus.failure,
-          message: 'Detail pesanan gagal dimuat: $error',
+          message: error.toString(),
         ),
       );
     }
@@ -71,7 +82,7 @@ final class BookingDetailBloc
         emit(
           state.copyWith(
             status: BookingDetailStatus.actionSuccess,
-            message: 'Pesanan berhasil ditolak.',
+            feedback: BookingDetailFeedback.bookingRejected,
             shouldPop: true,
             realtimeConnected: state.realtimeConnected,
             realtimeFailed: state.realtimeFailed,
@@ -84,7 +95,7 @@ final class BookingDetailBloc
         BookingDetailState(
           status: BookingDetailStatus.actionSuccess,
           booking: booking,
-          message: 'Pesanan berhasil diterima.',
+          feedback: BookingDetailFeedback.bookingAccepted,
           realtimeConnected: state.realtimeConnected,
           realtimeFailed: state.realtimeFailed,
         ),
@@ -106,7 +117,7 @@ final class BookingDetailBloc
         BookingDetailState(
           status: BookingDetailStatus.actionSuccess,
           booking: booking,
-          message: 'Status pekerjaan berhasil diperbarui.',
+          feedback: BookingDetailFeedback.progressUpdated,
           realtimeConnected: state.realtimeConnected,
           realtimeFailed: state.realtimeFailed,
         ),
@@ -128,9 +139,35 @@ final class BookingDetailBloc
         BookingDetailState(
           status: BookingDetailStatus.actionSuccess,
           booking: booking,
-          message: 'Pesanan berhasil dibatalkan.',
+          feedback: BookingDetailFeedback.bookingCancelled,
           realtimeConnected: state.realtimeConnected,
           realtimeFailed: state.realtimeFailed,
+        ),
+      );
+    } catch (error, stackTrace) {
+      _actionFailure(error, stackTrace, emit);
+    }
+  }
+
+  Future<void> _onReviewSubmitted(
+    BookingReviewSubmitted event,
+    Emitter<BookingDetailState> emit,
+  ) async {
+    final booking = state.booking;
+    if (_staffMode || booking?.status != 'completed') return;
+
+    emit(state.copyWith(status: BookingDetailStatus.submitting));
+    try {
+      final review = await _repository.submitBookingReview(
+        bookingId: _bookingId,
+        rating: event.rating,
+        comment: event.comment,
+      );
+      emit(
+        state.copyWith(
+          status: BookingDetailStatus.actionSuccess,
+          review: review,
+          feedback: BookingDetailFeedback.reviewSaved,
         ),
       );
     } catch (error, stackTrace) {
@@ -147,7 +184,7 @@ final class BookingDetailBloc
     emit(
       state.copyWith(
         status: BookingDetailStatus.failure,
-        message: 'Aksi pesanan gagal: $error',
+        message: error.toString(),
       ),
     );
   }
@@ -165,14 +202,18 @@ final class BookingDetailBloc
         );
   }
 
-  void _onRealtimeUpdated(
+  Future<void> _onRealtimeUpdated(
     BookingRealtimeUpdated event,
     Emitter<BookingDetailState> emit,
-  ) {
+  ) async {
+    final review = event.booking.status == 'completed'
+        ? await _repository.getBookingReview(_bookingId)
+        : state.review;
     emit(
       BookingDetailState(
         status: BookingDetailStatus.success,
         booking: event.booking,
+        review: review,
         realtimeConnected: true,
         realtimeFailed: false,
       ),

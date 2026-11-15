@@ -32,6 +32,10 @@ final class RegisterSubmitted extends AuthEvent {
   List<Object?> get props => [fullName, email, password];
 }
 
+final class GoogleSignInRequested extends AuthEvent {
+  const GoogleSignInRequested();
+}
+
 final class SignOutRequested extends AuthEvent {
   const SignOutRequested();
 }

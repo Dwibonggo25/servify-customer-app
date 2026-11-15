@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../../../libraries/core/localization/app_localizations.dart';
+import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
 import '../cubit/staff_qr_scan_cubit.dart';
 
@@ -34,7 +36,9 @@ final class _StaffQrScanPageState extends State<StaffQrScanPage> {
         if (state.status == StaffQrScanStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message ?? 'QR berhasil diverifikasi.'),
+              content: Text(
+                state.message ?? context.tr(LanguageKeys.qrVerified),
+              ),
             ),
           );
           Navigator.of(context).pop(true);
@@ -44,7 +48,11 @@ final class _StaffQrScanPageState extends State<StaffQrScanPage> {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(content: Text(state.message ?? 'QR tidak valid.')),
+              SnackBar(
+                content: Text(
+                  state.message ?? context.tr(LanguageKeys.invalidQr),
+                ),
+              ),
             );
           _handlingCode = false;
           context.read<StaffQrScanCubit>().retry();
@@ -54,12 +62,16 @@ final class _StaffQrScanPageState extends State<StaffQrScanPage> {
       builder: (context, state) => Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          title: Text('Scan QR ${widget.purposeLabel}'),
+          title: Text(
+            context.tr(LanguageKeys.scanQrPurpose, {
+              'purpose': widget.purposeLabel,
+            }),
+          ),
           foregroundColor: Colors.white,
           backgroundColor: Colors.black,
           actions: [
             IconButton(
-              tooltip: 'Nyalakan lampu',
+              tooltip: context.tr(LanguageKeys.turnOnFlash),
               onPressed: _controller.toggleTorch,
               icon: const Icon(Icons.flash_on_rounded),
             ),
@@ -90,7 +102,7 @@ final class _StaffQrScanPageState extends State<StaffQrScanPage> {
                       ],
                       Text(
                         state.message ??
-                            'Arahkan kamera ke QR milik customer. Lokasi perangkat akan dicatat saat QR diverifikasi.',
+                            context.tr(LanguageKeys.scanQrInstruction),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,

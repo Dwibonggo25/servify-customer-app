@@ -1,5 +1,6 @@
 import '../entities/booking_draft.dart';
 import '../entities/booking_record.dart';
+import '../entities/booking_review.dart';
 
 abstract interface class BookingRepository {
   Future<BookingRecord> createBooking(BookingDraft draft);
@@ -19,4 +20,12 @@ abstract interface class BookingRepository {
   Future<void> updateProgress(String id, String status);
 
   Future<void> cancelBooking(String id);
+
+  Future<BookingReview?> getBookingReview(String bookingId);
+
+  Future<BookingReview> submitBookingReview({
+    required String bookingId,
+    required int rating,
+    String? comment,
+  });
 }

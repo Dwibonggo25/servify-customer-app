@@ -60,6 +60,12 @@ abstract final class En {
     LanguageKeys.invalidEmail: 'Enter a valid email address.',
     LanguageKeys.minimumPassword:
         'Password must contain at least 8 characters.',
+    LanguageKeys.continueWithGoogle: 'Continue with Google',
+    LanguageKeys.orContinueWith: 'or continue with',
+    LanguageKeys.googleAuthOpened:
+        'Google sign-in opened. Complete the process in your browser.',
+    LanguageKeys.googleSignInFailed:
+        'Failed to open Google sign-in. Please try again.',
     LanguageKeys.greeting: 'Hello, {name}!',
     LanguageKeys.homeQuestion: 'What service do you need today?',
     LanguageKeys.searchService: 'Search services',
@@ -73,6 +79,29 @@ abstract final class En {
         'There are no active service categories in the database.',
     LanguageKeys.scanComingSoon: 'Scan QR will be added in the next phase.',
     LanguageKeys.pageComingSoon: 'The {page} page will be added next.',
+    LanguageKeys.askServifyAi: 'Ask Servify AI',
+    LanguageKeys.aiHomeDescription:
+        'Describe your needs and get a service suggestion',
+    LanguageKeys.aiAssistant: 'Servify AI',
+    LanguageKeys.aiAssistantSubtitle:
+        'Find a suitable service through a simple conversation',
+    LanguageKeys.aiWelcomeTitle: 'How can I help?',
+    LanguageKeys.aiWelcomeDescription:
+        'Tell me what you need. I will help identify a relevant service category.',
+    LanguageKeys.aiPromptHint: 'Describe the service you need...',
+    LanguageKeys.aiPromptExample:
+        'My air conditioner is not cold and makes a loud noise.',
+    LanguageKeys.aiThinking: 'Servify AI is preparing an answer...',
+    LanguageKeys.aiResponseLabel: 'Servify AI response',
+    LanguageKeys.aiSend: 'Send question',
+    LanguageKeys.aiEmptyPrompt: 'Describe your needs before sending.',
+    LanguageKeys.aiRequestFailed:
+        'Servify AI could not respond. Check your connection and try again.',
+    LanguageKeys.aiRequestTimedOut:
+        'Servify AI took too long to respond. Check your connection and try again.',
+    LanguageKeys.aiRetry: 'Try again',
+    LanguageKeys.aiDisclaimer:
+        'AI suggestions may be inaccurate. Confirm service details before booking.',
     LanguageKeys.serviceList: 'Services',
     LanguageKeys.findService: 'Find the service you need',
     LanguageKeys.findServiceDescription:
@@ -211,6 +240,100 @@ abstract final class En {
     LanguageKeys.showQr: 'Show {purpose} QR',
     LanguageKeys.qrSafetyNotice:
         'Do not share a screenshot of this QR code. It can only be used once.',
+    LanguageKeys.bookingRejected: 'The order was rejected.',
+    LanguageKeys.bookingAccepted: 'The order was accepted.',
+    LanguageKeys.progressUpdated: 'Work status updated successfully.',
+    LanguageKeys.bookingCancelled: 'The order was cancelled.',
+    LanguageKeys.reviewAndRating: 'Review and rating',
+    LanguageKeys.reviewAndRatingDescription:
+        'Share your experience to help other customers.',
+    LanguageKeys.yourRating: 'Your rating',
+    LanguageKeys.ratingRequired: 'Select a rating first.',
+    LanguageKeys.reviewComment: 'Review (optional)',
+    LanguageKeys.reviewCommentHint:
+        'Tell us about the quality of the service you received',
+    LanguageKeys.submitReview: 'Submit review',
+    LanguageKeys.updateReview: 'Update review',
+    LanguageKeys.reviewSaved: 'Your review was saved.',
+    LanguageKeys.reviewSubmittedDescription:
+        'Thank you for sharing your experience.',
+    LanguageKeys.administrator: 'Administrator',
+    LanguageKeys.staff: 'Staff',
+    LanguageKeys.dashboard: 'Dashboard',
+    LanguageKeys.history: 'History',
+    LanguageKeys.active: 'Active',
+    LanguageKeys.staffDashboard: 'Staff Dashboard',
+    LanguageKeys.staffDashboardSubtitle:
+        "Manage today's jobs and monitor their progress",
+    LanguageKeys.workSummary: 'Work summary',
+    LanguageKeys.currentAccountActivity: 'Your current account activity',
+    LanguageKeys.newLabel: 'New',
+    LanguageKeys.activeWork: 'Active jobs',
+    LanguageKeys.activeWorkDescription: 'Orders you are currently handling',
+    LanguageKeys.noActiveWork: 'No active jobs yet',
+    LanguageKeys.noActiveWorkDescription:
+        'Accept an incoming order to start working.',
+    LanguageKeys.workHistory: 'Work History',
+    LanguageKeys.workHistoryDescription: 'Review jobs you have handled',
+    LanguageKeys.incomingOrders: 'Incoming Orders',
+    LanguageKeys.incomingOrdersDescription:
+        'Choose an order and respond promptly',
+    LanguageKeys.allHistory: 'All history',
+    LanguageKeys.orderList: 'Order list',
+    LanguageKeys.workFound: '{count} job(s) found',
+    LanguageKeys.newOrdersWaiting: '{count} new order(s) awaiting response',
+    LanguageKeys.noWorkHistory: 'No work history yet',
+    LanguageKeys.noIncomingOrders: 'No incoming orders',
+    LanguageKeys.completedWorkAppear:
+        'Completed jobs will appear on this page.',
+    LanguageKeys.pullLatestOrders: 'Pull down to check the latest orders.',
+    LanguageKeys.noNewOrders: 'No new orders',
+    LanguageKeys.newOrdersAvailable: '{count} new order(s) available',
+    LanguageKeys.newWorkNotify: 'We will notify you when a new job arrives.',
+    LanguageKeys.checkAndTakeWork:
+        'Review the details and accept a suitable job.',
+    LanguageKeys.completedWorkCount: '{count} completed job(s)',
+    LanguageKeys.activeOrderCount: '{count} active order(s)',
+    LanguageKeys.workDocumentation: 'Your work documentation',
+    LanguageKeys.newOrdersAmong: '{count} of these are new orders',
+    LanguageKeys.ordersLoadFailed:
+        'Failed to load orders. Check your connection and try again.',
+    LanguageKeys.latestDataSyncFailed: 'Failed to sync the latest data.',
+    LanguageKeys.newOrderAwaitingResponse: 'New order — awaiting your response',
+    LanguageKeys.workValue: 'Job value',
+    LanguageKeys.viewDetails: 'View details',
+    LanguageKeys.staffProfile: 'Staff Profile',
+    LanguageKeys.staffProfileSubtitle:
+        'Manage your identity and account settings',
+    LanguageKeys.staffAccountInformationDescription:
+        'Information used for your jobs',
+    LanguageKeys.staffSettingsDescription:
+        'Manage account preferences and security',
+    LanguageKeys.editProfileMenuDescription:
+        'Update your full name and phone number',
+    LanguageKeys.workNotifications: 'Work notifications',
+    LanguageKeys.workNotificationsDescription: 'View order and job updates',
+    LanguageKeys.staffSecurityDescription:
+        'Password and account access security',
+    LanguageKeys.staffFooter: 'Servify Staff • Connected and protected account',
+    LanguageKeys.logoutQuestion: 'Log out of your account?',
+    LanguageKeys.staffLogoutWarning:
+        'You must log in again to receive and manage jobs.',
+    LanguageKeys.staffDefaultName: 'Servify Staff',
+    LanguageKeys.verified: 'Verified',
+    LanguageKeys.accountRole: 'Account role',
+    LanguageKeys.serviceStaff: 'Service staff',
+    LanguageKeys.editStaffProfile: 'Edit staff profile',
+    LanguageKeys.editStaffProfileDescription:
+        'Make sure customers can recognize you.',
+    LanguageKeys.staffProfileLoadFailed: 'Failed to load the staff profile.',
+    LanguageKeys.qrVerified: 'QR code verified successfully.',
+    LanguageKeys.invalidQr: 'Invalid QR code.',
+    LanguageKeys.scanQrPurpose: 'Scan {purpose} QR',
+    LanguageKeys.turnOnFlash: 'Turn on flashlight',
+    LanguageKeys.scanQrInstruction:
+        "Point the camera at the customer's QR code. The device location will be recorded during verification.",
+    LanguageKeys.noNotifications: 'No notifications yet.',
     LanguageKeys.editProfile: 'Edit profile',
     LanguageKeys.profilePageSubtitle:
         'Manage your account information and app preferences.',

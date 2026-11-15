@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../libraries/core/localization/app_localizations.dart';
+import '../../../../libraries/core/localization/language_keys.dart';
 import '../../../../libraries/design_system/theme/app_colors.dart';
 
 final class StaffBottomNavigation extends StatelessWidget {
@@ -31,28 +33,28 @@ final class StaffBottomNavigation extends StatelessWidget {
             _StaffNavigationButton(
               icon: Icons.dashboard_outlined,
               selectedIcon: Icons.dashboard_rounded,
-              label: 'Dashboard',
+              label: context.tr(LanguageKeys.dashboard),
               selected: index == 0,
               onTap: () => context.go('/staff'),
             ),
             _StaffNavigationButton(
               icon: Icons.inbox_outlined,
               selectedIcon: Icons.inbox_rounded,
-              label: 'Pesanan',
+              label: context.tr(LanguageKeys.orders),
               selected: index == 1,
               onTap: () => context.go('/staff/incoming'),
             ),
             _StaffNavigationButton(
               icon: Icons.history_outlined,
               selectedIcon: Icons.history_rounded,
-              label: 'Riwayat',
+              label: context.tr(LanguageKeys.history),
               selected: index == 2,
               onTap: () => context.go('/staff/history'),
             ),
             _StaffNavigationButton(
               icon: Icons.person_outline_rounded,
               selectedIcon: Icons.person_rounded,
-              label: 'Profil',
+              label: context.tr(LanguageKeys.profile),
               selected: index == 3,
               onTap: () => context.go('/staff/profile'),
             ),

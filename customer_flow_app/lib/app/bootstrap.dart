@@ -1,7 +1,11 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../features/ai_assistant/data/datasources/firebase_ai_remote_data_source.dart';
+import '../features/ai_assistant/data/repositories/firebase_ai_repository.dart';
 import '../features/auth/data/repositories/supabase_auth_repository.dart';
 import '../features/bookings/data/repositories/supabase_booking_repository.dart';
 import '../features/bookings/data/datasources/supabase_staff_booking_remote_data_source.dart';
@@ -20,6 +24,8 @@ import 'app.dart';
 import 'router/app_router.dart';
 import 'session/app_session_controller.dart';
 
+import '../firebase_options.dart';
+
 Future<void> bootstrap(Flavor flavor) async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -29,6 +35,19 @@ Future<void> bootstrap(Flavor flavor) async {
     runApp(ConfigurationRequiredApp(message: error.message));
     return;
   }
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  final isDevelopment = flavor == Flavor.dev;
+
+  await FirebaseAppCheck.instance.activate(
+    providerAndroid: isDevelopment
+        ? const AndroidDebugProvider()
+        : const AndroidPlayIntegrityProvider(),
+    providerApple: isDevelopment
+        ? const AppleDebugProvider()
+        : const AppleAppAttestWithDeviceCheckFallbackProvider(),
+  );
 
   await Hive.initFlutter();
   final settingsBox = await Hive.openBox<dynamic>(AppConstants.settingsBox);
@@ -40,6 +59,7 @@ Future<void> bootstrap(Flavor flavor) async {
     publishableKey: AppConfig.instance.supabaseAnonKey,
   );
 
+  final aiRepository = FirebaseAiRepository(FirebaseAiRemoteDataSource());
   final authRepository = SupabaseAuthRepository(Supabase.instance.client);
   final staffBookingRemoteDataSource = SupabaseStaffBookingRemoteDataSource(
     Supabase.instance.client,
@@ -71,6 +91,7 @@ Future<void> bootstrap(Flavor flavor) async {
   );
   final appRouter = AppRouter(
     sessionController: sessionController,
+    aiRepository: aiRepository,
     authRepository: authRepository,
     bookingRepository: bookingRepository,
     bookingQrRepository: bookingQrRepository,

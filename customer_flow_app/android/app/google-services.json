@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "864493100038",
+    "project_id": "servify-d223d",
+    "storage_bucket": "servify-d223d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:864493100038:android:7774aafe335dedb7897787",
+        "android_client_info": {
+          "package_name": "com.dwibonggo.servify"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkXLozQFiVwsLPqIsstSshyyzS6iMXlUg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:864493100038:android:d45cc032378fb3b8897787",
+        "android_client_info": {
+          "package_name": "com.dwibonggo.servify.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkXLozQFiVwsLPqIsstSshyyzS6iMXlUg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

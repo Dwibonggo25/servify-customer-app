@@ -61,6 +61,12 @@ abstract final class In {
     LanguageKeys.fieldRequired: '{field} wajib diisi.',
     LanguageKeys.invalidEmail: 'Format email tidak valid.',
     LanguageKeys.minimumPassword: 'Password minimal 8 karakter.',
+    LanguageKeys.continueWithGoogle: 'Lanjutkan dengan Google',
+    LanguageKeys.orContinueWith: 'atau lanjutkan dengan',
+    LanguageKeys.googleAuthOpened:
+        'Login Google dibuka. Selesaikan prosesnya di browser.',
+    LanguageKeys.googleSignInFailed:
+        'Login Google gagal dibuka. Silakan coba kembali.',
     LanguageKeys.greeting: 'Halo, {name}!',
     LanguageKeys.homeQuestion: 'Layanan apa yang Anda butuhkan hari ini?',
     LanguageKeys.searchService: 'Cari layanan',
@@ -75,6 +81,29 @@ abstract final class In {
         'Fitur Scan QR akan ditambahkan pada tahap berikutnya.',
     LanguageKeys.pageComingSoon:
         'Halaman {page} akan ditambahkan pada tahap berikutnya.',
+    LanguageKeys.askServifyAi: 'Tanya Servify AI',
+    LanguageKeys.aiHomeDescription:
+        'Ceritakan kebutuhan Anda dan dapatkan saran layanan',
+    LanguageKeys.aiAssistant: 'Servify AI',
+    LanguageKeys.aiAssistantSubtitle:
+        'Temukan layanan yang sesuai melalui percakapan sederhana',
+    LanguageKeys.aiWelcomeTitle: 'Ada yang bisa saya bantu?',
+    LanguageKeys.aiWelcomeDescription:
+        'Ceritakan kebutuhan Anda. Saya akan membantu menentukan kategori layanan yang relevan.',
+    LanguageKeys.aiPromptHint: 'Ceritakan layanan yang Anda butuhkan...',
+    LanguageKeys.aiPromptExample:
+        'AC saya tidak dingin dan mengeluarkan suara keras.',
+    LanguageKeys.aiThinking: 'Servify AI sedang menyiapkan jawaban...',
+    LanguageKeys.aiResponseLabel: 'Jawaban Servify AI',
+    LanguageKeys.aiSend: 'Kirim pertanyaan',
+    LanguageKeys.aiEmptyPrompt: 'Ceritakan kebutuhan Anda sebelum mengirim.',
+    LanguageKeys.aiRequestFailed:
+        'Servify AI belum dapat menjawab. Periksa koneksi lalu coba lagi.',
+    LanguageKeys.aiRequestTimedOut:
+        'Respons Servify AI terlalu lama. Periksa koneksi lalu coba lagi.',
+    LanguageKeys.aiRetry: 'Coba lagi',
+    LanguageKeys.aiDisclaimer:
+        'Saran AI mungkin tidak akurat. Konfirmasi detail layanan sebelum memesan.',
     LanguageKeys.serviceList: 'Daftar layanan',
     LanguageKeys.findService: 'Temukan layanan yang Anda butuhkan',
     LanguageKeys.findServiceDescription:
@@ -213,6 +242,104 @@ abstract final class In {
     LanguageKeys.showQr: 'Tampilkan QR {purpose}',
     LanguageKeys.qrSafetyNotice:
         'Jangan kirim tangkapan layar QR kepada orang lain. QR hanya dapat digunakan sekali.',
+    LanguageKeys.bookingRejected: 'Pesanan berhasil ditolak.',
+    LanguageKeys.bookingAccepted: 'Pesanan berhasil diterima.',
+    LanguageKeys.progressUpdated: 'Status pekerjaan berhasil diperbarui.',
+    LanguageKeys.bookingCancelled: 'Pesanan berhasil dibatalkan.',
+    LanguageKeys.reviewAndRating: 'Review dan rating',
+    LanguageKeys.reviewAndRatingDescription:
+        'Bagikan pengalaman Anda untuk membantu pelanggan lain.',
+    LanguageKeys.yourRating: 'Rating Anda',
+    LanguageKeys.ratingRequired: 'Pilih rating terlebih dahulu.',
+    LanguageKeys.reviewComment: 'Ulasan (opsional)',
+    LanguageKeys.reviewCommentHint:
+        'Ceritakan kualitas layanan yang Anda terima',
+    LanguageKeys.submitReview: 'Kirim ulasan',
+    LanguageKeys.updateReview: 'Perbarui ulasan',
+    LanguageKeys.reviewSaved: 'Ulasan berhasil disimpan.',
+    LanguageKeys.reviewSubmittedDescription:
+        'Terima kasih telah membagikan pengalaman Anda.',
+    LanguageKeys.administrator: 'Administrator',
+    LanguageKeys.staff: 'Staff',
+    LanguageKeys.dashboard: 'Dashboard',
+    LanguageKeys.history: 'Riwayat',
+    LanguageKeys.active: 'Aktif',
+    LanguageKeys.staffDashboard: 'Dashboard Staff',
+    LanguageKeys.staffDashboardSubtitle:
+        'Kelola pekerjaan dan pantau progres hari ini',
+    LanguageKeys.workSummary: 'Ringkasan pekerjaan',
+    LanguageKeys.currentAccountActivity: 'Aktivitas akun Anda saat ini',
+    LanguageKeys.newLabel: 'Baru',
+    LanguageKeys.activeWork: 'Pekerjaan aktif',
+    LanguageKeys.activeWorkDescription: 'Pesanan yang sedang Anda tangani',
+    LanguageKeys.noActiveWork: 'Belum ada pekerjaan aktif',
+    LanguageKeys.noActiveWorkDescription:
+        'Terima pesanan masuk untuk mulai mengerjakan layanan.',
+    LanguageKeys.workHistory: 'Riwayat Pekerjaan',
+    LanguageKeys.workHistoryDescription:
+        'Lihat kembali pekerjaan yang telah ditangani',
+    LanguageKeys.incomingOrders: 'Pesanan Masuk',
+    LanguageKeys.incomingOrdersDescription:
+        'Pilih pesanan dan berikan respons dengan cepat',
+    LanguageKeys.allHistory: 'Semua riwayat',
+    LanguageKeys.orderList: 'Daftar pesanan',
+    LanguageKeys.workFound: '{count} pekerjaan ditemukan',
+    LanguageKeys.newOrdersWaiting: '{count} pesanan baru menunggu respons',
+    LanguageKeys.noWorkHistory: 'Belum ada riwayat pekerjaan',
+    LanguageKeys.noIncomingOrders: 'Belum ada pesanan masuk',
+    LanguageKeys.completedWorkAppear:
+        'Pekerjaan yang selesai akan muncul di halaman ini.',
+    LanguageKeys.pullLatestOrders:
+        'Tarik ke bawah untuk memeriksa pesanan terbaru.',
+    LanguageKeys.noNewOrders: 'Tidak ada pesanan baru',
+    LanguageKeys.newOrdersAvailable: '{count} pesanan baru tersedia',
+    LanguageKeys.newWorkNotify:
+        'Kami akan memberi tahu saat ada pekerjaan baru.',
+    LanguageKeys.checkAndTakeWork:
+        'Periksa detail dan ambil pekerjaan yang sesuai.',
+    LanguageKeys.completedWorkCount: '{count} pekerjaan selesai',
+    LanguageKeys.activeOrderCount: '{count} pesanan aktif',
+    LanguageKeys.workDocumentation: 'Dokumentasi pekerjaan Anda',
+    LanguageKeys.newOrdersAmong: '{count} di antaranya merupakan pesanan baru',
+    LanguageKeys.ordersLoadFailed:
+        'Pesanan gagal dimuat. Periksa koneksi lalu coba kembali.',
+    LanguageKeys.latestDataSyncFailed: 'Data terbaru gagal disinkronkan.',
+    LanguageKeys.newOrderAwaitingResponse:
+        'Pesanan baru — menunggu respons Anda',
+    LanguageKeys.workValue: 'Nilai pekerjaan',
+    LanguageKeys.viewDetails: 'Lihat detail',
+    LanguageKeys.staffProfile: 'Profil Staff',
+    LanguageKeys.staffProfileSubtitle:
+        'Kelola identitas dan pengaturan akun Anda',
+    LanguageKeys.staffAccountInformationDescription:
+        'Data yang digunakan pada pekerjaan Anda',
+    LanguageKeys.staffSettingsDescription:
+        'Kelola preferensi dan keamanan akun',
+    LanguageKeys.editProfileMenuDescription:
+        'Ubah nama lengkap dan nomor telepon',
+    LanguageKeys.workNotifications: 'Notifikasi pekerjaan',
+    LanguageKeys.workNotificationsDescription:
+        'Lihat pembaruan pesanan dan pekerjaan',
+    LanguageKeys.staffSecurityDescription: 'Password dan keamanan akses akun',
+    LanguageKeys.staffFooter: 'Servify Staff • Akun terhubung dan terlindungi',
+    LanguageKeys.logoutQuestion: 'Keluar dari akun?',
+    LanguageKeys.staffLogoutWarning:
+        'Anda harus masuk kembali untuk menerima dan mengelola pekerjaan.',
+    LanguageKeys.staffDefaultName: 'Staff Servify',
+    LanguageKeys.verified: 'Terverifikasi',
+    LanguageKeys.accountRole: 'Peran akun',
+    LanguageKeys.serviceStaff: 'Staff layanan',
+    LanguageKeys.editStaffProfile: 'Edit profil staff',
+    LanguageKeys.editStaffProfileDescription:
+        'Pastikan customer dapat mengenali identitas Anda.',
+    LanguageKeys.staffProfileLoadFailed: 'Profil staff gagal dimuat.',
+    LanguageKeys.qrVerified: 'QR berhasil diverifikasi.',
+    LanguageKeys.invalidQr: 'QR tidak valid.',
+    LanguageKeys.scanQrPurpose: 'Scan QR {purpose}',
+    LanguageKeys.turnOnFlash: 'Nyalakan lampu',
+    LanguageKeys.scanQrInstruction:
+        'Arahkan kamera ke QR milik customer. Lokasi perangkat akan dicatat saat QR diverifikasi.',
+    LanguageKeys.noNotifications: 'Belum ada notifikasi.',
     LanguageKeys.editProfile: 'Edit profil',
     LanguageKeys.profilePageSubtitle:
         'Kelola informasi akun dan preferensi aplikasi Anda.',
