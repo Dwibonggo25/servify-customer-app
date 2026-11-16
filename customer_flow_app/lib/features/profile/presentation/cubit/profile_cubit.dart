@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../libraries/core/localization/language_controller.dart';
@@ -28,7 +30,12 @@ final class ProfileCubit extends Cubit<ProfileState> {
   }
 
   Future<void> update({required String fullName, required String phone}) async {
-    emit(state.copyWith(status: ProfileStatus.saving));
+    emit(
+      state.copyWith(
+        status: ProfileStatus.saving,
+        action: ProfileAction.updateDetails,
+      ),
+    );
     try {
       final profile = await _repository.updateProfile(
         fullName: fullName,
@@ -37,6 +44,7 @@ final class ProfileCubit extends Cubit<ProfileState> {
       emit(
         ProfileState(
           status: ProfileStatus.saved,
+          action: ProfileAction.updateDetails,
           profile: profile,
           message: LanguageController.instance.translate(
             LanguageKeys.profileUpdated,
@@ -49,6 +57,44 @@ final class ProfileCubit extends Cubit<ProfileState> {
           status: ProfileStatus.failure,
           message: LanguageController.instance.translate(
             LanguageKeys.profileUpdateFailed,
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> uploadAvatar({
+    required Uint8List bytes,
+    required String fileExtension,
+  }) async {
+    emit(
+      state.copyWith(
+        status: ProfileStatus.saving,
+        action: ProfileAction.uploadAvatar,
+      ),
+    );
+    try {
+      final profile = await _repository.uploadAvatar(
+        bytes: bytes,
+        fileExtension: fileExtension,
+      );
+      emit(
+        ProfileState(
+          status: ProfileStatus.saved,
+          action: ProfileAction.uploadAvatar,
+          profile: profile,
+          message: LanguageController.instance.translate(
+            LanguageKeys.profilePhotoUpdated,
+          ),
+        ),
+      );
+    } catch (_) {
+      emit(
+        state.copyWith(
+          status: ProfileStatus.failure,
+          action: ProfileAction.uploadAvatar,
+          message: LanguageController.instance.translate(
+            LanguageKeys.profilePhotoUpdateFailed,
           ),
         ),
       );

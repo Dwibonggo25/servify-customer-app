@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/account_security/domain/repositories/account_security_repository.dart';
+import '../../features/account_security/presentation/cubit/account_security_cubit.dart';
+import '../../features/account_security/presentation/ui/account_security_page.dart';
 import '../../features/ai_assistant/domain/repositories/ai_repository.dart';
 import '../../features/ai_assistant/presentation/cubit/ai_assistant_cubit.dart';
 import '../../features/ai_assistant/presentation/ui/ai_assistant_page.dart';
+import '../../features/addresses/domain/repositories/address_repository.dart';
+import '../../features/addresses/presentation/cubit/address_cubit.dart';
+import '../../features/addresses/presentation/ui/address_management_page.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/admin/presentation/bloc/admin_service_bloc.dart';
 import '../../features/admin/presentation/bloc/admin_service_event.dart';
@@ -20,6 +26,7 @@ import '../../features/bookings/domain/repositories/booking_repository.dart';
 import '../../features/bookings/presentation/bloc/booking_form_bloc.dart';
 import '../../features/bookings/presentation/bloc/booking_detail_bloc.dart';
 import '../../features/bookings/presentation/bloc/booking_detail_event.dart';
+import '../../features/bookings/presentation/cubit/booking_history_cubit.dart';
 import '../../features/bookings/presentation/ui/booking_confirmation_page.dart';
 import '../../features/bookings/presentation/ui/booking_detail_page.dart';
 import '../../features/bookings/presentation/ui/booking_form_page.dart';
@@ -56,6 +63,8 @@ import '../session/app_session_controller.dart';
 final class AppRouter {
   AppRouter({
     required AppSessionController sessionController,
+    required AccountSecurityRepository accountSecurityRepository,
+    required AddressRepository addressRepository,
     required AiRepository aiRepository,
     required AuthRepository authRepository,
     required BookingRepository bookingRepository,
@@ -207,6 +216,8 @@ final class AppRouter {
                ],
                child: ServiceListPage(
                  initialCategory: state.uri.queryParameters['category'],
+                 autofocusSearch:
+                     state.uri.queryParameters['focusSearch'] == 'true',
                ),
              ),
            ),
@@ -217,8 +228,16 @@ final class AppRouter {
                return _ServiceLoaderPage(
                  serviceId: serviceId,
                  serviceRepository: serviceRepository,
-                 builder: (service) => BlocProvider(
-                   create: (_) => FavoriteCubit(favoriteRepository)..load(),
+                 builder: (service) => MultiBlocProvider(
+                   providers: [
+                     BlocProvider(
+                       create: (_) => FavoriteCubit(favoriteRepository)..load(),
+                     ),
+                     BlocProvider(
+                       create: (_) =>
+                           ServiceCatalogCubit(serviceRepository)..load(),
+                     ),
+                   ],
                    child: ServiceDetailPage(service: service),
                  ),
                );
@@ -231,8 +250,15 @@ final class AppRouter {
                return _ServiceLoaderPage(
                  serviceId: serviceId,
                  serviceRepository: serviceRepository,
-                 builder: (service) => BlocProvider(
-                   create: (_) => BookingFormBloc(bookingRepository),
+                 builder: (service) => MultiBlocProvider(
+                   providers: [
+                     BlocProvider(
+                       create: (_) => BookingFormBloc(bookingRepository),
+                     ),
+                     BlocProvider(
+                       create: (_) => AddressCubit(addressRepository)..load(),
+                     ),
+                   ],
                    child: BookingFormPage(
                      service: service,
                      initialCustomerName:
@@ -273,7 +299,10 @@ final class AppRouter {
              path: '/orders',
              pageBuilder: (context, state) => NoTransitionPage(
                key: state.pageKey,
-               child: BookingHistoryPage(repository: bookingRepository),
+               child: BlocProvider(
+                 create: (_) => BookingHistoryCubit(bookingRepository)..load(),
+                 child: const BookingHistoryPage(),
+               ),
              ),
            ),
            GoRoute(
@@ -314,6 +343,21 @@ final class AppRouter {
                  ],
                  child: const ProfilePage(),
                ),
+             ),
+           ),
+           GoRoute(
+             path: '/profile/addresses',
+             builder: (context, state) => BlocProvider(
+               create: (_) => AddressCubit(addressRepository)..load(),
+               child: const AddressManagementPage(),
+             ),
+           ),
+           GoRoute(
+             path: '/profile/security',
+             builder: (context, state) => BlocProvider(
+               create: (_) =>
+                   AccountSecurityCubit(accountSecurityRepository)..load(),
+               child: const AccountSecurityPage(),
              ),
            ),
            GoRoute(

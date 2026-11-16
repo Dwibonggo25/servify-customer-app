@@ -105,13 +105,21 @@ abstract final class In {
     LanguageKeys.aiDisclaimer:
         'Saran AI mungkin tidak akurat. Konfirmasi detail layanan sebelum memesan.',
     LanguageKeys.serviceList: 'Daftar layanan',
+    LanguageKeys.servicePageSubtitle:
+        'Pilih bantuan tepercaya untuk kebutuhan sehari-hari.',
     LanguageKeys.findService: 'Temukan layanan yang Anda butuhkan',
     LanguageKeys.findServiceDescription:
         'Pilih tenaga profesional untuk membantu kebutuhan rumah Anda.',
+    LanguageKeys.serviceResults: 'Layanan tersedia',
+    LanguageKeys.serviceResultCount: '{count} ditemukan',
+    LanguageKeys.clearSearch: 'Hapus pencarian',
+    LanguageKeys.clearFilters: 'Hapus filter',
     LanguageKeys.reloadCategories: 'Muat ulang kategori',
     LanguageKeys.reloadServices: 'Muat ulang layanan',
     LanguageKeys.serviceLoadFailed: 'Daftar layanan gagal dimuat.',
     LanguageKeys.serviceNotFound: 'Layanan tidak ditemukan.',
+    LanguageKeys.serviceNotFoundDescription:
+        'Coba kata kunci lain atau hapus filter yang dipilih.',
     LanguageKeys.favoriteEmptyTitle: 'Belum ada layanan favorit',
     LanguageKeys.favoriteEmptyDescription:
         'Tekan ikon hati pada layanan yang ingin Anda simpan.',
@@ -128,13 +136,31 @@ abstract final class In {
     LanguageKeys.undo: 'Urungkan',
     LanguageKeys.startingAt: 'Mulai {price}',
     LanguageKeys.serviceDetail: 'Detail layanan',
+    LanguageKeys.serviceDetailSubtitle:
+        'Pelajari detail layanan sebelum membuat pesanan.',
     LanguageKeys.reviewsAndEstimate: '{reviews} ulasan • Estimasi {duration}',
+    LanguageKeys.reviewCount: '{count} ulasan',
+    LanguageKeys.estimatedTime: 'Estimasi waktu',
+    LanguageKeys.aboutThisService: 'Tentang layanan ini',
+    LanguageKeys.trustedService: 'Layanan tepercaya',
+    LanguageKeys.trustedServiceDescription:
+        'Pesanan ditangani staf terverifikasi dan dapat dipantau melalui aplikasi.',
+    LanguageKeys.similarServices: 'Layanan serupa',
+    LanguageKeys.similarServicesDescription:
+        'Pilihan lain dari kategori yang sama.',
+    LanguageKeys.startingPrice: 'Harga mulai',
     LanguageKeys.whatYouGet: 'Yang Anda dapatkan',
     LanguageKeys.bookNow: 'Pesan sekarang',
     LanguageKeys.day: '{count} hari',
     LanguageKeys.hour: '{count} jam',
     LanguageKeys.minute: '{count} menit',
     LanguageKeys.bookingForm: 'Form pemesanan',
+    LanguageKeys.bookingFormSubtitle:
+        'Lengkapi informasi dan pilih jadwal layanan Anda.',
+    LanguageKeys.bookingCreateFailed:
+        'Pesanan gagal dibuat. Silakan coba kembali.',
+    LanguageKeys.manageAddresses: 'Kelola alamat',
+    LanguageKeys.addSavedAddress: 'Tambah alamat tersimpan',
     LanguageKeys.customerInformation: 'Informasi customer',
     LanguageKeys.whatsappNumber: 'Nomor WhatsApp',
     LanguageKeys.phoneExample: 'Contoh: 08123456789',
@@ -340,6 +366,20 @@ abstract final class In {
     LanguageKeys.scanQrInstruction:
         'Arahkan kamera ke QR milik customer. Lokasi perangkat akan dicatat saat QR diverifikasi.',
     LanguageKeys.noNotifications: 'Belum ada notifikasi.',
+    LanguageKeys.notificationsPageSubtitle:
+        'Pantau perkembangan pesanan dan aktivitas layanan Anda.',
+    LanguageKeys.notificationSummaryTitle: 'Pembaruan terbaru Anda',
+    LanguageKeys.notificationUnreadSummary:
+        '{count} pembaruan belum Anda buka.',
+    LanguageKeys.notificationAllReadSummary: 'Semua pembaruan sudah dibaca.',
+    LanguageKeys.notificationLatest: 'Notifikasi terbaru',
+    LanguageKeys.notificationNew: 'Baru',
+    LanguageKeys.notificationEmptyTitle: 'Belum ada pembaruan',
+    LanguageKeys.notificationEmptyDescription:
+        'Informasi pesanan dan layanan akan muncul di sini.',
+    LanguageKeys.notificationLoadFailedTitle: 'Notifikasi gagal dimuat',
+    LanguageKeys.notificationLoadFailedDescription:
+        'Periksa koneksi Anda, lalu coba kembali.',
     LanguageKeys.editProfile: 'Edit profil',
     LanguageKeys.profilePageSubtitle:
         'Kelola informasi akun dan preferensi aplikasi Anda.',
@@ -348,9 +388,99 @@ abstract final class In {
     LanguageKeys.settings: 'Pengaturan',
     LanguageKeys.savedAddresses: 'Alamat tersimpan',
     LanguageKeys.savedAddressesDescription: 'Atur alamat rumah atau kantor',
+    LanguageKeys.addressManagement: 'Kelola alamat',
+    LanguageKeys.addressManagementSubtitle:
+        'Simpan lokasi agar proses pemesanan lebih cepat.',
+    LanguageKeys.savedAddressCount: '{count} alamat tersimpan',
+    LanguageKeys.addAddress: 'Tambah alamat',
+    LanguageKeys.editAddress: 'Edit alamat',
+    LanguageKeys.deleteAddress: 'Hapus alamat',
+    LanguageKeys.deleteAddressTitle: 'Hapus alamat ini?',
+    LanguageKeys.deleteAddressConfirmation:
+        'Alamat “{label}” akan dihapus secara permanen.',
+    LanguageKeys.addressLabel: 'Label alamat',
+    LanguageKeys.addressLabelHint: 'Contoh: Rumah atau Kantor',
+    LanguageKeys.recipientName: 'Nama penerima',
+    LanguageKeys.fullAddress: 'Alamat lengkap',
+    LanguageKeys.addressNotes: 'Petunjuk lokasi (opsional)',
+    LanguageKeys.addressNotesHint:
+        'Warna bangunan, lantai, atau patokan terdekat',
+    LanguageKeys.defaultAddress: 'Alamat utama',
+    LanguageKeys.makeDefaultAddress: 'Jadikan alamat utama',
+    LanguageKeys.makeDefaultAddressDescription:
+        'Gunakan alamat ini terlebih dahulu saat membuat pesanan.',
+    LanguageKeys.setAsDefaultAddress: 'Jadikan alamat utama',
+    LanguageKeys.saveAddress: 'Simpan alamat',
+    LanguageKeys.addressFormDescription:
+        'Lengkapi informasi agar staf mudah menemukan lokasi.',
+    LanguageKeys.addressEmptyTitle: 'Belum ada alamat tersimpan',
+    LanguageKeys.addressEmptyDescription:
+        'Tambahkan alamat rumah atau kantor agar pemesanan lebih cepat.',
+    LanguageKeys.addressLoadFailed:
+        'Alamat gagal dimuat. Periksa koneksi lalu coba kembali.',
+    LanguageKeys.addressAdded: 'Alamat berhasil ditambahkan.',
+    LanguageKeys.addressUpdated: 'Alamat berhasil diperbarui.',
+    LanguageKeys.addressSaveFailed:
+        'Alamat gagal disimpan. Silakan coba kembali.',
+    LanguageKeys.defaultAddressUpdated: 'Alamat utama berhasil diperbarui.',
+    LanguageKeys.addressDeleted: 'Alamat berhasil dihapus.',
+    LanguageKeys.addressDeleteFailed:
+        'Alamat gagal dihapus. Silakan coba kembali.',
+    LanguageKeys.moreOptions: 'Pilihan lainnya',
     LanguageKeys.accountSecurity: 'Keamanan akun',
     LanguageKeys.accountSecurityDescription:
         'Ubah password dan pengaturan keamanan',
+    LanguageKeys.accountSecurityPageSubtitle:
+        'Kelola login, perangkat, dan perlindungan akun Anda.',
+    LanguageKeys.accountSecurityLoadFailed:
+        'Informasi keamanan akun gagal dimuat.',
+    LanguageKeys.accountProtected: 'Perlindungan akun aktif',
+    LanguageKeys.accountProtectedDescription:
+        'Tinjau metode login dan sesi Anda secara berkala.',
+    LanguageKeys.signInAndVerification: 'Login dan verifikasi',
+    LanguageKeys.accountEmail: 'Email akun',
+    LanguageKeys.emailVerification: 'Verifikasi email',
+    LanguageKeys.emailVerified: 'Email terverifikasi',
+    LanguageKeys.emailNotVerified: 'Email belum terverifikasi',
+    LanguageKeys.signInMethod: 'Metode login',
+    LanguageKeys.emailAndPassword: 'Email & password',
+    LanguageKeys.passwordAndSessions: 'Password dan sesi',
+    LanguageKeys.changePassword: 'Ubah password',
+    LanguageKeys.changePasswordDescription:
+        'Gunakan minimal 8 karakter yang sulit ditebak.',
+    LanguageKeys.changePasswordFormDescription:
+        'Password baru akan digunakan pada login berikutnya.',
+    LanguageKeys.currentPassword: 'Password saat ini',
+    LanguageKeys.currentPasswordRequired: 'Password saat ini wajib diisi.',
+    LanguageKeys.newPassword: 'Password baru',
+    LanguageKeys.confirmNewPassword: 'Konfirmasi password baru',
+    LanguageKeys.passwordsDoNotMatch: 'Konfirmasi password belum sama.',
+    LanguageKeys.saveNewPassword: 'Simpan password baru',
+    LanguageKeys.passwordChanged: 'Password berhasil diperbarui.',
+    LanguageKeys.accountSessions: 'Sesi akun',
+    LanguageKeys.accountSessionsDescription:
+        'Keluar dari semua perangkat jika ada aktivitas yang tidak dikenali.',
+    LanguageKeys.signOutAllDevices: 'Keluar dari semua perangkat',
+    LanguageKeys.signOutAllDevicesQuestion: 'Keluar dari semua perangkat?',
+    LanguageKeys.signOutAllDevicesWarning:
+        'Semua sesi, termasuk perangkat ini, akan dikeluarkan dan harus login kembali.',
+    LanguageKeys.signOut: 'Keluar',
+    LanguageKeys.allSessionsSignedOut: 'Semua sesi akun berhasil dikeluarkan.',
+    LanguageKeys.dangerZone: 'Zona berbahaya',
+    LanguageKeys.deleteAccount: 'Hapus akun',
+    LanguageKeys.deleteAccountDescription:
+        'Menghapus profil, alamat, favorit, dan riwayat akun secara permanen.',
+    LanguageKeys.deleteAccountQuestion: 'Hapus akun secara permanen?',
+    LanguageKeys.deleteAccountWarning:
+        'Tindakan ini tidak dapat dibatalkan. Semua data akun Anda akan dihapus.',
+    LanguageKeys.deleteAccountConfirmationWord: 'HAPUS',
+    LanguageKeys.typeToConfirm: 'Ketik {word} untuk konfirmasi',
+    LanguageKeys.deleteConfirmationInvalid:
+        'Ketik kata konfirmasi dengan benar.',
+    LanguageKeys.deletePermanently: 'Hapus permanen',
+    LanguageKeys.accountDeleted: 'Akun berhasil dihapus.',
+    LanguageKeys.securityActionFailed:
+        'Tindakan keamanan gagal. Silakan coba kembali.',
     LanguageKeys.logoutAccount: 'Keluar dari akun',
     LanguageKeys.addressComingSoon:
         'Pengelolaan alamat akan ditambahkan pada tahap berikutnya.',
@@ -364,6 +494,15 @@ abstract final class In {
     LanguageKeys.profileUpdated: 'Profil berhasil diperbarui.',
     LanguageKeys.profileUpdateFailed:
         'Profil gagal diperbarui. Silakan coba kembali.',
+    LanguageKeys.changeProfilePhoto: 'Ubah foto profil',
+    LanguageKeys.chooseFromGallery: 'Pilih dari galeri',
+    LanguageKeys.takePhoto: 'Ambil foto',
+    LanguageKeys.profilePhotoTooLarge: 'Ukuran foto maksimal 5 MB.',
+    LanguageKeys.profilePhotoSelectionFailed:
+        'Foto gagal dipilih. Silakan coba kembali.',
+    LanguageKeys.profilePhotoUpdated: 'Foto profil berhasil diperbarui.',
+    LanguageKeys.profilePhotoUpdateFailed:
+        'Foto profil gagal diunggah. Silakan coba kembali.',
     LanguageKeys.editProfileDescription:
         'Perbarui informasi yang digunakan pada pemesanan.',
     LanguageKeys.nameRequired: 'Nama lengkap wajib diisi.',

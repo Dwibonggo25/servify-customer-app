@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../libraries/core/localization/app_localizations.dart';
 import '../../../../libraries/core/localization/language_controller.dart';
@@ -77,7 +78,7 @@ final class ProfilePage extends StatelessWidget {
         body: BlocBuilder<ProfileCubit, ProfileState>(
           builder: (context, state) {
             if (state.isLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const _ProfileLoading();
             }
             final profile = state.profile;
             if (profile == null) {
@@ -85,7 +86,13 @@ final class ProfilePage extends StatelessWidget {
                 onRetry: () => context.read<ProfileCubit>().load(),
               );
             }
-            return _ProfileContent(profile: profile);
+            return _ProfileContent(
+              profile: profile,
+              isUploadingAvatar: state.isUploadingAvatar,
+              onAvatarTap: state.isSaving
+                  ? null
+                  : () => _selectProfilePhoto(context),
+            );
           },
         ),
         bottomNavigationBar: AppBottomNavigation(
@@ -120,6 +127,78 @@ final class ProfilePage extends StatelessWidget {
     );
   }
 
+  Future<void> _selectProfilePhoto(BuildContext context) async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 2, 8, 12),
+                child: Text(
+                  context.tr(LanguageKeys.changeProfilePhoto),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: Text(context.tr(LanguageKeys.chooseFromGallery)),
+                onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: Text(context.tr(LanguageKeys.takePhoto)),
+                onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (source == null || !context.mounted) return;
+
+    try {
+      final image = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 1200,
+        imageQuality: 85,
+      );
+      if (image == null || !context.mounted) return;
+
+      final bytes = await image.readAsBytes();
+      if (!context.mounted) return;
+      if (bytes.lengthInBytes > 5 * 1024 * 1024) {
+        _showMessage(context, context.tr(LanguageKeys.profilePhotoTooLarge));
+        return;
+      }
+
+      final nameParts = image.name.split('.');
+      await context.read<ProfileCubit>().uploadAvatar(
+        bytes: bytes,
+        fileExtension: nameParts.length > 1 ? nameParts.last : 'jpg',
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      _showMessage(
+        context,
+        context.tr(LanguageKeys.profilePhotoSelectionFailed),
+      );
+    }
+  }
+
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
   void _showComingSoon(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -128,16 +207,26 @@ final class ProfilePage extends StatelessWidget {
 }
 
 final class _ProfileContent extends StatelessWidget {
-  const _ProfileContent({required this.profile});
+  const _ProfileContent({
+    required this.profile,
+    required this.isUploadingAvatar,
+    required this.onAvatarTap,
+  });
 
   final CustomerProfile profile;
+  final bool isUploadingAvatar;
+  final VoidCallback? onAvatarTap;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
       children: [
-        _ProfileHeader(profile: profile),
+        _ProfileHeader(
+          profile: profile,
+          isUploading: isUploadingAvatar,
+          onAvatarTap: onAvatarTap,
+        ),
         const SizedBox(height: 24),
         Text(
           context.tr(LanguageKeys.accountInformation),
@@ -188,18 +277,14 @@ final class _ProfileContent extends StatelessWidget {
           icon: Icons.location_on_outlined,
           title: context.tr(LanguageKeys.savedAddresses),
           subtitle: context.tr(LanguageKeys.savedAddressesDescription),
-          onTap: () =>
-              _showMessage(context, context.tr(LanguageKeys.addressComingSoon)),
+          onTap: () => context.push('/profile/addresses'),
         ),
         const SizedBox(height: 10),
         _ProfileMenuTile(
           icon: Icons.lock_outline_rounded,
           title: context.tr(LanguageKeys.accountSecurity),
           subtitle: context.tr(LanguageKeys.accountSecurityDescription),
-          onTap: () => _showMessage(
-            context,
-            context.tr(LanguageKeys.securityComingSoon),
-          ),
+          onTap: () => context.push('/profile/security'),
         ),
         const SizedBox(height: 10),
         _ProfileMenuTile(
@@ -225,12 +310,6 @@ final class _ProfileContent extends StatelessWidget {
     );
   }
 
-  void _showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
-  }
-
   Future<void> _openLanguageSheet(BuildContext context) {
     return showModalBottomSheet<void>(
       context: context,
@@ -240,10 +319,254 @@ final class _ProfileContent extends StatelessWidget {
   }
 }
 
+final class _ProfileLoading extends StatefulWidget {
+  const _ProfileLoading();
+
+  @override
+  State<_ProfileLoading> createState() => _ProfileLoadingState();
+}
+
+final class _ProfileLoadingState extends State<_ProfileLoading>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final color = Color.lerp(
+          const Color(0xFFE6E6EE),
+          const Color(0xFFF5F5F9),
+          _controller.value,
+        )!;
+        return ListView(
+          key: const Key('profile_loading_shimmer'),
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
+          children: [
+            _ProfileHeaderSkeleton(color: color),
+            const SizedBox(height: 24),
+            _ProfileSkeletonBlock(color: color, width: 164, height: 22),
+            const SizedBox(height: 12),
+            _ProfileInformationSkeleton(color: color),
+            const SizedBox(height: 24),
+            _ProfileSkeletonBlock(color: color, width: 104, height: 22),
+            const SizedBox(height: 12),
+            for (var index = 0; index < 3; index++) ...[
+              _ProfileMenuSkeleton(color: color),
+              if (index < 2) const SizedBox(height: 10),
+            ],
+            const SizedBox(height: 22),
+            _ProfileSkeletonBlock(
+              color: color,
+              width: double.infinity,
+              height: 54,
+              radius: 16,
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+final class _ProfileHeaderSkeleton extends StatelessWidget {
+  const _ProfileHeaderSkeleton({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 132,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(26),
+      ),
+      child: Row(
+        children: [
+          _ProfileSkeletonBlock(
+            color: color,
+            width: 76,
+            height: 76,
+            radius: 38,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _ProfileSkeletonBlock(color: color, width: 148, height: 20),
+                const SizedBox(height: 9),
+                _ProfileSkeletonBlock(color: color, width: 188, height: 13),
+                const SizedBox(height: 11),
+                _ProfileSkeletonBlock(
+                  color: color,
+                  width: 72,
+                  height: 24,
+                  radius: 12,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+final class _ProfileInformationSkeleton extends StatelessWidget {
+  const _ProfileInformationSkeleton({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          for (var index = 0; index < 3; index++) ...[
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  _ProfileSkeletonBlock(
+                    color: color,
+                    width: 26,
+                    height: 26,
+                    radius: 8,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _ProfileSkeletonBlock(
+                          color: color,
+                          width: 74,
+                          height: 10,
+                        ),
+                        const SizedBox(height: 7),
+                        _ProfileSkeletonBlock(
+                          color: color,
+                          width: index == 1 ? 190 : 132,
+                          height: 14,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (index < 2) const Divider(height: 1, indent: 58),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+final class _ProfileMenuSkeleton extends StatelessWidget {
+  const _ProfileMenuSkeleton({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 76,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          _ProfileSkeletonBlock(
+            color: color,
+            width: 42,
+            height: 42,
+            radius: 13,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _ProfileSkeletonBlock(color: color, width: 126, height: 14),
+                const SizedBox(height: 7),
+                _ProfileSkeletonBlock(color: color, width: 186, height: 11),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          _ProfileSkeletonBlock(color: color, width: 18, height: 18, radius: 6),
+        ],
+      ),
+    );
+  }
+}
+
+final class _ProfileSkeletonBlock extends StatelessWidget {
+  const _ProfileSkeletonBlock({
+    required this.color,
+    required this.width,
+    required this.height,
+    this.radius = 7,
+  });
+
+  final Color color;
+  final double width;
+  final double height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: width,
+    height: height,
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(radius),
+    ),
+  );
+}
+
 final class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.profile});
+  const _ProfileHeader({
+    required this.profile,
+    required this.isUploading,
+    required this.onAvatarTap,
+  });
 
   final CustomerProfile profile;
+  final bool isUploading;
+  final VoidCallback? onAvatarTap;
 
   @override
   Widget build(BuildContext context) {
@@ -260,22 +583,65 @@ final class _ProfileHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 38,
-            backgroundColor: Colors.white,
-            backgroundImage: avatarUrl == null || avatarUrl.isEmpty
-                ? null
-                : NetworkImage(avatarUrl),
-            child: avatarUrl == null || avatarUrl.isEmpty
-                ? Text(
-                    profile.initial,
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
+          Tooltip(
+            message: context.tr(LanguageKeys.changeProfilePhoto),
+            child: InkWell(
+              onTap: onAvatarTap,
+              borderRadius: BorderRadius.circular(44),
+              child: SizedBox.square(
+                dimension: 84,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        backgroundImage: avatarUrl == null || avatarUrl.isEmpty
+                            ? null
+                            : NetworkImage(avatarUrl),
+                        child: avatarUrl == null || avatarUrl.isEmpty
+                            ? Text(
+                                profile.initial,
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              )
+                            : null,
+                      ),
                     ),
-                  )
-                : null,
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
+                        ),
+                        child: isUploading
+                            ? const Padding(
+                                padding: EdgeInsets.all(6),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.camera_alt_rounded,
+                                color: AppColors.primary,
+                                size: 16,
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(

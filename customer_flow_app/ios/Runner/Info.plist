@@ -38,9 +38,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Servify memerlukan akses galeri agar admin dapat mengunggah gambar layanan.</string>
+	<string>Servify memerlukan akses galeri untuk mengunggah gambar layanan dan foto profil.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Servify memerlukan kamera agar staf dapat memindai QR verifikasi pesanan.</string>
+	<string>Servify memerlukan kamera untuk memindai QR dan mengambil foto profil.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Servify menyimpan lokasi staf saat QR pesanan diverifikasi.</string>
 	<key>UIApplicationSceneManifest</key>

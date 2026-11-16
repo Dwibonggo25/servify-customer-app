@@ -39,62 +39,26 @@ final class HomePage extends StatelessWidget {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(context.tr(LanguageKeys.home)),
-          actions: [
-            IconButton(
-              tooltip: context.tr(LanguageKeys.notifications),
-              onPressed: () => context.push('/notifications'),
-              icon: const Icon(Icons.notifications_none_rounded),
-            ),
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'logout') {
-                  context.read<AuthBloc>().add(const SignOutRequested());
-                }
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'logout',
-                  child: Text(context.tr(LanguageKeys.logout)),
-                ),
-              ],
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: CircleAvatar(
-                  backgroundColor: Color(0xFFEDEBFF),
-                  child: Icon(Icons.person_rounded, color: AppColors.primary),
-                ),
-              ),
-            ),
-          ],
+        appBar: _HomeAppBar(
+          displayName: displayName,
+          onNotificationsPressed: () => context.push('/notifications'),
+          onAddressesPressed: () => context.push('/profile/addresses'),
+          onLogoutPressed: () {
+            context.read<AuthBloc>().add(const SignOutRequested());
+          },
         ),
         body: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
           children: [
-            Text(
-              context.tr(LanguageKeys.greeting, {
-                'name': displayName?.isNotEmpty == true
-                    ? displayName!
-                    : context.tr(LanguageKeys.customer),
-              }),
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              context.tr(LanguageKeys.homeQuestion),
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 24),
             TextField(
               readOnly: true,
+              onTap: () => context.push('/services?focusSearch=true'),
               decoration: InputDecoration(
                 hintText: context.tr(LanguageKeys.searchService),
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: IconButton(
-                  onPressed: () {},
+                  tooltip: context.tr(LanguageKeys.serviceCategories),
+                  onPressed: () => context.push('/services'),
                   icon: const Icon(Icons.tune_rounded),
                 ),
               ),
@@ -245,6 +209,196 @@ final class HomePage extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
   }
+}
+
+final class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _HomeAppBar({
+    required this.displayName,
+    required this.onNotificationsPressed,
+    required this.onAddressesPressed,
+    required this.onLogoutPressed,
+  });
+
+  final String? displayName;
+  final VoidCallback onNotificationsPressed;
+  final VoidCallback onAddressesPressed;
+  final VoidCallback onLogoutPressed;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(88);
+
+  @override
+  Widget build(BuildContext context) {
+    final resolvedName = displayName?.isNotEmpty == true
+        ? displayName!
+        : context.tr(LanguageKeys.customer);
+    final avatarLabel = resolvedName.characters.first.toUpperCase();
+
+    return AppBar(
+      automaticallyImplyLeading: false,
+      toolbarHeight: preferredSize.height,
+      titleSpacing: 20,
+      backgroundColor: const Color(0xFFFBFBFE),
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      shape: const Border(
+        bottom: BorderSide(color: AppColors.border, width: 0.8),
+      ),
+      title: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEDEBFF),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              color: AppColors.primary,
+              size: 23,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.tr(LanguageKeys.greeting, {'name': resolvedName}),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  context.tr(LanguageKeys.homeQuestion),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        _HomeAppBarAction(
+          tooltip: context.tr(LanguageKeys.notifications),
+          icon: Icons.notifications_none_rounded,
+          onPressed: onNotificationsPressed,
+        ),
+        const SizedBox(width: 8),
+        PopupMenuButton<String>(
+          tooltip: context.tr(LanguageKeys.profile),
+          offset: const Offset(0, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          onSelected: (value) {
+            if (value == 'addresses') onAddressesPressed();
+            if (value == 'logout') onLogoutPressed();
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'addresses',
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(context.tr(LanguageKeys.addressManagement)),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            PopupMenuItem(
+              value: 'logout',
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.logout_rounded,
+                    size: 20,
+                    color: AppColors.error,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    context.tr(LanguageKeys.logout),
+                    style: const TextStyle(color: AppColors.error),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          child: Container(
+            width: 42,
+            height: 42,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.16),
+              ),
+            ),
+            child: Text(
+              avatarLabel,
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+      ],
+    );
+  }
+}
+
+final class _HomeAppBarAction extends StatelessWidget {
+  const _HomeAppBarAction({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: tooltip,
+    child: Material(
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: AppColors.border),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onPressed,
+        child: SizedBox(
+          width: 42,
+          height: 42,
+          child: Icon(icon, color: AppColors.textPrimary, size: 22),
+        ),
+      ),
+    ),
+  );
 }
 
 final class _AiAssistantCard extends StatelessWidget {

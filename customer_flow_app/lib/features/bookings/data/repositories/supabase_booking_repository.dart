@@ -43,6 +43,7 @@ final class SupabaseBookingRepository implements BookingRepository {
           'service_id': draft.service.id,
           'customer_name': draft.customerName,
           'customer_phone': draft.phoneNumber,
+          'address_id': draft.addressId,
           'service_address': draft.address,
           'scheduled_at': scheduledAt.toUtc().toIso8601String(),
           'payment_method': draft.paymentMethod == 'e_wallet'

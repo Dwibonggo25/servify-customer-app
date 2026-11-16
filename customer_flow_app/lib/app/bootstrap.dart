@@ -6,6 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/ai_assistant/data/datasources/firebase_ai_remote_data_source.dart';
 import '../features/ai_assistant/data/repositories/firebase_ai_repository.dart';
+import '../features/account_security/data/repositories/supabase_account_security_repository.dart';
+import '../features/addresses/data/repositories/supabase_address_repository.dart';
 import '../features/auth/data/repositories/supabase_auth_repository.dart';
 import '../features/bookings/data/repositories/supabase_booking_repository.dart';
 import '../features/bookings/data/datasources/supabase_staff_booking_remote_data_source.dart';
@@ -60,6 +62,10 @@ Future<void> bootstrap(Flavor flavor) async {
   );
 
   final aiRepository = FirebaseAiRepository(FirebaseAiRemoteDataSource());
+  final accountSecurityRepository = SupabaseAccountSecurityRepository(
+    Supabase.instance.client,
+  );
+  final addressRepository = SupabaseAddressRepository(Supabase.instance.client);
   final authRepository = SupabaseAuthRepository(Supabase.instance.client);
   final staffBookingRemoteDataSource = SupabaseStaffBookingRemoteDataSource(
     Supabase.instance.client,
@@ -91,6 +97,8 @@ Future<void> bootstrap(Flavor flavor) async {
   );
   final appRouter = AppRouter(
     sessionController: sessionController,
+    accountSecurityRepository: accountSecurityRepository,
+    addressRepository: addressRepository,
     aiRepository: aiRepository,
     authRepository: authRepository,
     bookingRepository: bookingRepository,

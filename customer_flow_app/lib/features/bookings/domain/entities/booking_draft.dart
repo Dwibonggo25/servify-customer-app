@@ -9,6 +9,7 @@ final class BookingDraft {
     required this.schedule,
     required this.timeLabel,
     required this.paymentMethod,
+    this.addressId,
     this.note = '',
   });
 
@@ -16,6 +17,7 @@ final class BookingDraft {
   final String customerName;
   final String phoneNumber;
   final String address;
+  final String? addressId;
   final DateTime schedule;
   final String timeLabel;
   final String paymentMethod;

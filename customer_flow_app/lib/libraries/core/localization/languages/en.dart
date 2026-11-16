@@ -103,13 +103,21 @@ abstract final class En {
     LanguageKeys.aiDisclaimer:
         'AI suggestions may be inaccurate. Confirm service details before booking.',
     LanguageKeys.serviceList: 'Services',
+    LanguageKeys.servicePageSubtitle:
+        'Choose trusted help for your everyday needs.',
     LanguageKeys.findService: 'Find the service you need',
     LanguageKeys.findServiceDescription:
         'Choose a professional to help with your household needs.',
+    LanguageKeys.serviceResults: 'Available services',
+    LanguageKeys.serviceResultCount: '{count} found',
+    LanguageKeys.clearSearch: 'Clear search',
+    LanguageKeys.clearFilters: 'Clear filters',
     LanguageKeys.reloadCategories: 'Reload categories',
     LanguageKeys.reloadServices: 'Reload services',
     LanguageKeys.serviceLoadFailed: 'Failed to load services.',
     LanguageKeys.serviceNotFound: 'No services found.',
+    LanguageKeys.serviceNotFoundDescription:
+        'Try another keyword or clear the selected filters.',
     LanguageKeys.favoriteEmptyTitle: 'No favorite services yet',
     LanguageKeys.favoriteEmptyDescription:
         'Tap the heart icon on a service you want to save.',
@@ -126,13 +134,31 @@ abstract final class En {
     LanguageKeys.undo: 'Undo',
     LanguageKeys.startingAt: 'From {price}',
     LanguageKeys.serviceDetail: 'Service details',
+    LanguageKeys.serviceDetailSubtitle:
+        'Review the service details before making a booking.',
     LanguageKeys.reviewsAndEstimate: '{reviews} reviews • Estimated {duration}',
+    LanguageKeys.reviewCount: '{count} reviews',
+    LanguageKeys.estimatedTime: 'Estimated time',
+    LanguageKeys.aboutThisService: 'About this service',
+    LanguageKeys.trustedService: 'Trusted service',
+    LanguageKeys.trustedServiceDescription:
+        'Bookings are handled by verified staff and can be tracked in the app.',
+    LanguageKeys.similarServices: 'Similar services',
+    LanguageKeys.similarServicesDescription:
+        'More options from the same category.',
+    LanguageKeys.startingPrice: 'Starting price',
     LanguageKeys.whatYouGet: 'What you get',
     LanguageKeys.bookNow: 'Book now',
     LanguageKeys.day: '{count} day(s)',
     LanguageKeys.hour: '{count} hour(s)',
     LanguageKeys.minute: '{count} minute(s)',
     LanguageKeys.bookingForm: 'Booking form',
+    LanguageKeys.bookingFormSubtitle:
+        'Complete your details and choose a service schedule.',
+    LanguageKeys.bookingCreateFailed:
+        'Unable to create the booking. Please try again.',
+    LanguageKeys.manageAddresses: 'Manage addresses',
+    LanguageKeys.addSavedAddress: 'Add a saved address',
     LanguageKeys.customerInformation: 'Customer information',
     LanguageKeys.whatsappNumber: 'WhatsApp number',
     LanguageKeys.phoneExample: 'Example: 08123456789',
@@ -334,6 +360,20 @@ abstract final class En {
     LanguageKeys.scanQrInstruction:
         "Point the camera at the customer's QR code. The device location will be recorded during verification.",
     LanguageKeys.noNotifications: 'No notifications yet.',
+    LanguageKeys.notificationsPageSubtitle:
+        'Stay updated with your bookings and service activity.',
+    LanguageKeys.notificationSummaryTitle: 'Your latest updates',
+    LanguageKeys.notificationUnreadSummary:
+        '{count} updates have not been opened yet.',
+    LanguageKeys.notificationAllReadSummary: 'You are all caught up.',
+    LanguageKeys.notificationLatest: 'Recent notifications',
+    LanguageKeys.notificationNew: 'New',
+    LanguageKeys.notificationEmptyTitle: 'No updates yet',
+    LanguageKeys.notificationEmptyDescription:
+        'Booking and service updates will appear here.',
+    LanguageKeys.notificationLoadFailedTitle: 'Unable to load notifications',
+    LanguageKeys.notificationLoadFailedDescription:
+        'Check your connection, then try again.',
     LanguageKeys.editProfile: 'Edit profile',
     LanguageKeys.profilePageSubtitle:
         'Manage your account information and app preferences.',
@@ -342,9 +382,99 @@ abstract final class En {
     LanguageKeys.settings: 'Settings',
     LanguageKeys.savedAddresses: 'Saved addresses',
     LanguageKeys.savedAddressesDescription: 'Manage home or office addresses',
+    LanguageKeys.addressManagement: 'Address management',
+    LanguageKeys.addressManagementSubtitle:
+        'Save delivery locations to make booking faster.',
+    LanguageKeys.savedAddressCount: '{count} saved address(es)',
+    LanguageKeys.addAddress: 'Add address',
+    LanguageKeys.editAddress: 'Edit address',
+    LanguageKeys.deleteAddress: 'Delete address',
+    LanguageKeys.deleteAddressTitle: 'Delete this address?',
+    LanguageKeys.deleteAddressConfirmation:
+        'The address “{label}” will be permanently removed.',
+    LanguageKeys.addressLabel: 'Address label',
+    LanguageKeys.addressLabelHint: 'Example: Home or Office',
+    LanguageKeys.recipientName: 'Recipient name',
+    LanguageKeys.fullAddress: 'Full address',
+    LanguageKeys.addressNotes: 'Directions (optional)',
+    LanguageKeys.addressNotesHint: 'Building color, floor, or nearby landmark',
+    LanguageKeys.defaultAddress: 'Primary address',
+    LanguageKeys.makeDefaultAddress: 'Set as primary address',
+    LanguageKeys.makeDefaultAddressDescription:
+        'Use this address first when making a booking.',
+    LanguageKeys.setAsDefaultAddress: 'Set as primary address',
+    LanguageKeys.saveAddress: 'Save address',
+    LanguageKeys.addressFormDescription:
+        'Add complete details so staff can find the location easily.',
+    LanguageKeys.addressEmptyTitle: 'No saved addresses yet',
+    LanguageKeys.addressEmptyDescription:
+        'Add a home or office address to make your next booking faster.',
+    LanguageKeys.addressLoadFailed:
+        'Unable to load addresses. Check your connection and try again.',
+    LanguageKeys.addressAdded: 'Address added successfully.',
+    LanguageKeys.addressUpdated: 'Address updated successfully.',
+    LanguageKeys.addressSaveFailed:
+        'Unable to save the address. Please try again.',
+    LanguageKeys.defaultAddressUpdated: 'Primary address updated.',
+    LanguageKeys.addressDeleted: 'Address deleted.',
+    LanguageKeys.addressDeleteFailed:
+        'Unable to delete the address. Please try again.',
+    LanguageKeys.moreOptions: 'More options',
     LanguageKeys.accountSecurity: 'Account security',
     LanguageKeys.accountSecurityDescription:
         'Change your password and security settings',
+    LanguageKeys.accountSecurityPageSubtitle:
+        'Manage sign-in, devices, and account protection.',
+    LanguageKeys.accountSecurityLoadFailed:
+        'Unable to load account security information.',
+    LanguageKeys.accountProtected: 'Account protection is active',
+    LanguageKeys.accountProtectedDescription:
+        'Review your sign-in methods and sessions regularly.',
+    LanguageKeys.signInAndVerification: 'Sign-in and verification',
+    LanguageKeys.accountEmail: 'Account email',
+    LanguageKeys.emailVerification: 'Email verification',
+    LanguageKeys.emailVerified: 'Email verified',
+    LanguageKeys.emailNotVerified: 'Email not verified',
+    LanguageKeys.signInMethod: 'Sign-in method',
+    LanguageKeys.emailAndPassword: 'Email & password',
+    LanguageKeys.passwordAndSessions: 'Password and sessions',
+    LanguageKeys.changePassword: 'Change password',
+    LanguageKeys.changePasswordDescription:
+        'Use at least 8 characters that are difficult to guess.',
+    LanguageKeys.changePasswordFormDescription:
+        'Your new password will be used the next time you sign in.',
+    LanguageKeys.currentPassword: 'Current password',
+    LanguageKeys.currentPasswordRequired: 'Current password is required.',
+    LanguageKeys.newPassword: 'New password',
+    LanguageKeys.confirmNewPassword: 'Confirm new password',
+    LanguageKeys.passwordsDoNotMatch:
+        'The password confirmation does not match.',
+    LanguageKeys.saveNewPassword: 'Save new password',
+    LanguageKeys.passwordChanged: 'Password updated successfully.',
+    LanguageKeys.accountSessions: 'Account sessions',
+    LanguageKeys.accountSessionsDescription:
+        'Sign out every device if you notice unrecognized activity.',
+    LanguageKeys.signOutAllDevices: 'Sign out all devices',
+    LanguageKeys.signOutAllDevicesQuestion: 'Sign out all devices?',
+    LanguageKeys.signOutAllDevicesWarning:
+        'Every session, including this device, will be signed out and must log in again.',
+    LanguageKeys.signOut: 'Sign out',
+    LanguageKeys.allSessionsSignedOut: 'All account sessions were signed out.',
+    LanguageKeys.dangerZone: 'Danger zone',
+    LanguageKeys.deleteAccount: 'Delete account',
+    LanguageKeys.deleteAccountDescription:
+        'Permanently remove your profile, addresses, favorites, and account history.',
+    LanguageKeys.deleteAccountQuestion: 'Permanently delete this account?',
+    LanguageKeys.deleteAccountWarning:
+        'This action cannot be undone. All of your account data will be deleted.',
+    LanguageKeys.deleteAccountConfirmationWord: 'DELETE',
+    LanguageKeys.typeToConfirm: 'Type {word} to confirm',
+    LanguageKeys.deleteConfirmationInvalid:
+        'Enter the confirmation word exactly as shown.',
+    LanguageKeys.deletePermanently: 'Delete permanently',
+    LanguageKeys.accountDeleted: 'Account deleted successfully.',
+    LanguageKeys.securityActionFailed:
+        'The security action failed. Please try again.',
     LanguageKeys.logoutAccount: 'Log out of account',
     LanguageKeys.addressComingSoon:
         'Address management will be added in the next phase.',
@@ -357,6 +487,15 @@ abstract final class En {
     LanguageKeys.profileUpdated: 'Profile updated successfully.',
     LanguageKeys.profileUpdateFailed:
         'Failed to update profile. Please try again.',
+    LanguageKeys.changeProfilePhoto: 'Change profile photo',
+    LanguageKeys.chooseFromGallery: 'Choose from gallery',
+    LanguageKeys.takePhoto: 'Take a photo',
+    LanguageKeys.profilePhotoTooLarge: 'The photo must be 5 MB or smaller.',
+    LanguageKeys.profilePhotoSelectionFailed:
+        'Unable to select the photo. Please try again.',
+    LanguageKeys.profilePhotoUpdated: 'Profile photo updated successfully.',
+    LanguageKeys.profilePhotoUpdateFailed:
+        'Unable to upload the profile photo. Please try again.',
     LanguageKeys.editProfileDescription:
         'Update the information used for your bookings.',
     LanguageKeys.nameRequired: 'Full name is required.',

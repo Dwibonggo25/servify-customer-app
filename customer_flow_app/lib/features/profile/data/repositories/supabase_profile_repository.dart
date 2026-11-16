@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/customer_profile.dart';
@@ -60,6 +62,50 @@ final class SupabaseProfileRepository implements ProfileRepository {
     return _mapProfile(data, user.email ?? '');
   }
 
+  @override
+  Future<CustomerProfile> uploadAvatar({
+    required Uint8List bytes,
+    required String fileExtension,
+  }) async {
+    final user = _requireUser();
+    final extension = _normalizedExtension(fileExtension);
+    final fileName = 'avatar.$extension';
+    final path = '${user.id}/$fileName';
+    final bucket = _client.storage.from('avatars');
+
+    final existingFiles = await bucket.list(path: user.id);
+    await bucket.uploadBinary(
+      path,
+      bytes,
+      fileOptions: FileOptions(
+        contentType: _contentType(extension),
+        upsert: true,
+      ),
+    );
+
+    final oldPaths = existingFiles
+        .where(
+          (file) => file.name.startsWith('avatar.') && file.name != fileName,
+        )
+        .map((file) => '${user.id}/${file.name}')
+        .toList(growable: false);
+    if (oldPaths.isNotEmpty) await bucket.remove(oldPaths);
+
+    final version = DateTime.now().millisecondsSinceEpoch;
+    final avatarUrl = '${bucket.getPublicUrl(path)}?v=$version';
+    final data = await _client
+        .from('profiles')
+        .update({'avatar_url': avatarUrl})
+        .eq('id', user.id)
+        .select('id, full_name, phone, avatar_url, role')
+        .single();
+
+    await _client.auth.updateUser(
+      UserAttributes(data: {'avatar_url': avatarUrl}),
+    );
+    return _mapProfile(data, user.email ?? '');
+  }
+
   User _requireUser() {
     final user = _client.auth.currentUser;
     if (user == null) {
@@ -84,5 +130,23 @@ final class SupabaseProfileRepository implements ProfileRepository {
       avatarUrl: data['avatar_url'] as String?,
       role: data['role'] as String? ?? 'customer',
     );
+  }
+
+  String _normalizedExtension(String value) {
+    final extension = value.toLowerCase().replaceAll('.', '').trim();
+    return switch (extension) {
+      'png' || 'webp' || 'heic' || 'heif' => extension,
+      _ => 'jpg',
+    };
+  }
+
+  String _contentType(String extension) {
+    return switch (extension) {
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      'heic' => 'image/heic',
+      'heif' => 'image/heif',
+      _ => 'image/jpeg',
+    };
   }
 }
