@@ -19,6 +19,7 @@ import '../features/qr_verification/data/repositories/device_location_repository
 import '../features/qr_verification/data/repositories/supabase_booking_qr_repository.dart';
 import '../features/services/data/repositories/supabase_service_category_repository.dart';
 import '../features/services/data/repositories/supabase_service_repository.dart';
+import '../features/work_proofs/data/repositories/supabase_work_proof_repository.dart';
 import '../libraries/core/config/app_config.dart';
 import '../libraries/core/constants/app_constants.dart';
 import '../libraries/core/localization/language_controller.dart';
@@ -90,6 +91,9 @@ Future<void> bootstrap(Flavor flavor) async {
     Supabase.instance.client,
   );
   final serviceRepository = SupabaseServiceRepository(Supabase.instance.client);
+  final workProofRepository = SupabaseWorkProofRepository(
+    Supabase.instance.client,
+  );
   final onboardingRepository = HiveOnboardingRepository(settingsBox);
   final sessionController = AppSessionController(
     authRepository: authRepository,
@@ -109,6 +113,7 @@ Future<void> bootstrap(Flavor flavor) async {
     locationRepository: locationRepository,
     serviceCategoryRepository: serviceCategoryRepository,
     serviceRepository: serviceRepository,
+    workProofRepository: workProofRepository,
   );
 
   runApp(CustomerFlowApp(appRouter: appRouter));

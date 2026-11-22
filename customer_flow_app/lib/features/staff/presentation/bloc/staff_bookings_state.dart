@@ -10,12 +10,16 @@ final class StaffBookingsState extends Equatable {
     this.bookings = const [],
     this.message,
     this.refreshing = false,
+    this.realtimeConnected = false,
+    this.realtimeFailed = false,
   });
 
   final StaffBookingsStatus status;
   final List<BookingRecord> bookings;
   final String? message;
   final bool refreshing;
+  final bool realtimeConnected;
+  final bool realtimeFailed;
 
   List<BookingRecord> get available =>
       bookings.where((booking) => booking.isAvailable).toList(growable: false);
@@ -38,13 +42,24 @@ final class StaffBookingsState extends Equatable {
     List<BookingRecord>? bookings,
     String? message,
     bool? refreshing,
+    bool? realtimeConnected,
+    bool? realtimeFailed,
   }) => StaffBookingsState(
     status: status ?? this.status,
     bookings: bookings ?? this.bookings,
     message: message,
     refreshing: refreshing ?? this.refreshing,
+    realtimeConnected: realtimeConnected ?? this.realtimeConnected,
+    realtimeFailed: realtimeFailed ?? this.realtimeFailed,
   );
 
   @override
-  List<Object?> get props => [status, bookings, message, refreshing];
+  List<Object?> get props => [
+    status,
+    bookings,
+    message,
+    refreshing,
+    realtimeConnected,
+    realtimeFailed,
+  ];
 }

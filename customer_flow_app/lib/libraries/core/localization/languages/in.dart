@@ -8,6 +8,7 @@ abstract final class In {
     LanguageKeys.indonesian: 'Indonesia',
     LanguageKeys.english: 'Inggris',
     LanguageKeys.cancel: 'Batal',
+    LanguageKeys.delete: 'Hapus',
     LanguageKeys.retry: 'Coba lagi',
     LanguageKeys.email: 'Email',
     LanguageKeys.password: 'Password',
@@ -237,6 +238,33 @@ abstract final class In {
         'Pesanan yang sudah dibatalkan tidak dapat dipulihkan.',
     LanguageKeys.back: 'Kembali',
     LanguageKeys.workActions: 'Tindakan pekerjaan',
+    LanguageKeys.workProof: 'Bukti pekerjaan',
+    LanguageKeys.workProofSubtitle:
+        'Dokumentasikan kondisi sebelum dan sesudah pekerjaan.',
+    LanguageKeys.workProofPhotoCount: '{count} foto tersimpan',
+    LanguageKeys.beforeWork: 'Sebelum pekerjaan',
+    LanguageKeys.beforeWorkDescription:
+        'Catat kondisi lokasi sebelum mulai bekerja',
+    LanguageKeys.afterWork: 'Sesudah pekerjaan',
+    LanguageKeys.afterWorkDescription:
+        'Tunjukkan hasil akhir setelah pekerjaan selesai',
+    LanguageKeys.addBeforePhoto: 'Tambah foto sebelum',
+    LanguageKeys.addAfterPhoto: 'Tambah foto sesudah',
+    LanguageKeys.addWorkProof: 'Tambah bukti pekerjaan',
+    LanguageKeys.noWorkProofPhoto: 'Belum ada foto pada bagian ini.',
+    LanguageKeys.deletePhoto: 'Hapus foto',
+    LanguageKeys.deleteWorkProof: 'Hapus bukti pekerjaan?',
+    LanguageKeys.deleteWorkProofConfirmation:
+        'Foto ini akan dihapus permanen dan tidak dapat dipulihkan.',
+    LanguageKeys.workProofUploaded: 'Bukti pekerjaan berhasil diunggah.',
+    LanguageKeys.workProofDeleted: 'Bukti pekerjaan berhasil dihapus.',
+    LanguageKeys.workProofActionFailed:
+        'Bukti pekerjaan gagal diproses. Silakan coba lagi.',
+    LanguageKeys.workProofLoadFailed: 'Bukti pekerjaan gagal dimuat.',
+    LanguageKeys.workProofSelectionFailed:
+        'Foto gagal dipilih. Periksa izin kamera atau galeri.',
+    LanguageKeys.workProofLocked:
+        'Foto hanya dapat ditambahkan setelah pesanan diterima dan saat pekerjaan berlangsung.',
     LanguageKeys.reject: 'Tolak',
     LanguageKeys.accept: 'Terima',
     LanguageKeys.leaveForLocation: 'Berangkat ke lokasi',
@@ -330,6 +358,8 @@ abstract final class In {
     LanguageKeys.ordersLoadFailed:
         'Pesanan gagal dimuat. Periksa koneksi lalu coba kembali.',
     LanguageKeys.latestDataSyncFailed: 'Data terbaru gagal disinkronkan.',
+    LanguageKeys.staffRealtimeDisconnected:
+        'Koneksi realtime terputus. Tarik ke bawah untuk memperbarui pesanan.',
     LanguageKeys.newOrderAwaitingResponse:
         'Pesanan baru — menunggu respons Anda',
     LanguageKeys.workValue: 'Nilai pekerjaan',

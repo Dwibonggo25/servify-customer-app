@@ -58,6 +58,9 @@ import '../../features/staff/presentation/ui/staff_dashboard_page.dart';
 import '../../features/staff/presentation/ui/staff_profile_page.dart';
 import '../../features/staff/presentation/bloc/staff_bookings_bloc.dart';
 import '../../features/staff/presentation/bloc/staff_bookings_event.dart';
+import '../../features/work_proofs/domain/repositories/work_proof_repository.dart';
+import '../../features/work_proofs/presentation/cubit/work_proof_cubit.dart';
+import '../../features/work_proofs/presentation/ui/work_proof_page.dart';
 import '../session/app_session_controller.dart';
 
 final class AppRouter {
@@ -75,6 +78,7 @@ final class AppRouter {
     required LocationRepository locationRepository,
     required ServiceCategoryRepository serviceCategoryRepository,
     required ServiceRepository serviceRepository,
+    required WorkProofRepository workProofRepository,
   }) : _sessionController = sessionController,
        router = GoRouter(
          initialLocation: '/',
@@ -367,7 +371,7 @@ final class AppRouter {
                child: BlocProvider(
                  create: (_) =>
                      StaffBookingsBloc(bookingRepository)
-                       ..add(const StaffBookingsRequested()),
+                       ..add(const StaffBookingsRealtimeStarted()),
                  child: const StaffDashboardPage(),
                ),
              ),
@@ -379,7 +383,7 @@ final class AppRouter {
                child: BlocProvider(
                  create: (_) =>
                      StaffBookingsBloc(bookingRepository)
-                       ..add(const StaffBookingsRequested()),
+                       ..add(const StaffBookingsRealtimeStarted()),
                  child: const StaffBookingListPage(historyMode: false),
                ),
              ),
@@ -391,7 +395,7 @@ final class AppRouter {
                child: BlocProvider(
                  create: (_) =>
                      StaffBookingsBloc(bookingRepository)
-                       ..add(const StaffBookingsRequested()),
+                       ..add(const StaffBookingsRealtimeStarted()),
                  child: const StaffBookingListPage(historyMode: true),
                ),
              ),
@@ -420,6 +424,26 @@ final class AppRouter {
                      state.uri.queryParameters['purpose'] ?? 'pesanan',
                ),
              ),
+           ),
+           GoRoute(
+             path: '/staff/bookings/:bookingId/proofs',
+             builder: (context, state) {
+               final booking = state.extra is BookingRecord
+                   ? state.extra! as BookingRecord
+                   : null;
+               final bookingId = state.pathParameters['bookingId'] ?? '';
+               return BlocProvider(
+                 create: (_) => WorkProofCubit(
+                   repository: workProofRepository,
+                   bookingId: bookingId,
+                 )..load(),
+                 child: WorkProofPage(
+                   bookingNumber: booking?.number ?? '-',
+                   serviceName: booking?.serviceName ?? '',
+                   bookingStatus: booking?.status ?? '',
+                 ),
+               );
+             },
            ),
            GoRoute(
              path: '/staff/notifications',

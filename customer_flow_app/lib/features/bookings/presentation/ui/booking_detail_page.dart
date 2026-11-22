@@ -446,10 +446,41 @@ final class _StaffActionSection extends StatelessWidget {
   Widget build(BuildContext context) => _SectionCard(
     title: context.tr(LanguageKeys.workActions),
     icon: Icons.engineering_outlined,
-    children: _actions(context),
+    children: _actionsWithProof(context),
   );
 
-  List<Widget> _actions(BuildContext context) {
+  List<Widget> _actionsWithProof(BuildContext context) {
+    final workflowActions = _workflowActions(context);
+    if (booking.staffId == null ||
+        booking.status == 'cancelled' ||
+        booking.status == 'rejected') {
+      return workflowActions;
+    }
+
+    return [
+      SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: () => context.push(
+            '/staff/bookings/${booking.id}/proofs',
+            extra: booking,
+          ),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          icon: const Icon(Icons.photo_camera_back_outlined),
+          label: Text(context.tr(LanguageKeys.workProof)),
+        ),
+      ),
+      const SizedBox(height: 12),
+      ...workflowActions,
+    ];
+  }
+
+  List<Widget> _workflowActions(BuildContext context) {
     if (booking.isAvailable) {
       return [
         Row(

@@ -8,6 +8,7 @@ abstract final class En {
     LanguageKeys.indonesian: 'Indonesian',
     LanguageKeys.english: 'English',
     LanguageKeys.cancel: 'Cancel',
+    LanguageKeys.delete: 'Delete',
     LanguageKeys.retry: 'Try again',
     LanguageKeys.email: 'Email',
     LanguageKeys.password: 'Password',
@@ -235,6 +236,33 @@ abstract final class En {
     LanguageKeys.cancelOrderWarning: 'A cancelled order cannot be restored.',
     LanguageKeys.back: 'Back',
     LanguageKeys.workActions: 'Work actions',
+    LanguageKeys.workProof: 'Work proof',
+    LanguageKeys.workProofSubtitle:
+        'Document the condition before and after the work.',
+    LanguageKeys.workProofPhotoCount: '{count} saved photos',
+    LanguageKeys.beforeWork: 'Before work',
+    LanguageKeys.beforeWorkDescription:
+        'Record the condition before starting the work',
+    LanguageKeys.afterWork: 'After work',
+    LanguageKeys.afterWorkDescription:
+        'Show the final result after the work is completed',
+    LanguageKeys.addBeforePhoto: 'Add before photo',
+    LanguageKeys.addAfterPhoto: 'Add after photo',
+    LanguageKeys.addWorkProof: 'Add work proof',
+    LanguageKeys.noWorkProofPhoto: 'No photos have been added here.',
+    LanguageKeys.deletePhoto: 'Delete photo',
+    LanguageKeys.deleteWorkProof: 'Delete this work proof?',
+    LanguageKeys.deleteWorkProofConfirmation:
+        'This photo will be permanently deleted and cannot be recovered.',
+    LanguageKeys.workProofUploaded: 'Work proof uploaded successfully.',
+    LanguageKeys.workProofDeleted: 'Work proof deleted successfully.',
+    LanguageKeys.workProofActionFailed:
+        'Unable to process the work proof. Please try again.',
+    LanguageKeys.workProofLoadFailed: 'Unable to load work proof.',
+    LanguageKeys.workProofSelectionFailed:
+        'Unable to select a photo. Check the camera or gallery permission.',
+    LanguageKeys.workProofLocked:
+        'Photos can only be added after accepting the order and while the work is in progress.',
     LanguageKeys.reject: 'Reject',
     LanguageKeys.accept: 'Accept',
     LanguageKeys.leaveForLocation: 'Leave for location',
@@ -325,6 +353,8 @@ abstract final class En {
     LanguageKeys.ordersLoadFailed:
         'Failed to load orders. Check your connection and try again.',
     LanguageKeys.latestDataSyncFailed: 'Failed to sync the latest data.',
+    LanguageKeys.staffRealtimeDisconnected:
+        'Realtime connection lost. Pull down to refresh the orders.',
     LanguageKeys.newOrderAwaitingResponse: 'New order — awaiting your response',
     LanguageKeys.workValue: 'Job value',
     LanguageKeys.viewDetails: 'View details',

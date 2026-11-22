@@ -120,7 +120,22 @@ final class HomePage extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () => context.push('/services'),
-                  child: Text(context.tr(LanguageKeys.seeAll)),
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.07),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    shape: const StadiumBorder(),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(context.tr(LanguageKeys.seeAll)),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_forward_rounded, size: 16),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -142,29 +157,31 @@ final class HomePage extends StatelessWidget {
                   return const _EmptyCategories();
                 }
 
-                return GridView.count(
-                  crossAxisCount: 2,
+                final categories = state.categories.take(4).toList();
+
+                return GridView.builder(
+                  itemCount: categories.length,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.94,
-                  children: state.categories.take(4).map((category) {
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    mainAxisExtent: 92,
+                  ),
+                  itemBuilder: (context, index) {
+                    final category = categories[index];
                     final uri = Uri(
                       path: '/services',
                       queryParameters: {'category': category.name},
                     );
                     return ServiceCard(
                       title: category.name,
-                      subtitle: context.tr(
-                        LanguageKeys.trustedCategoryService,
-                        {'category': category.name.toLowerCase()},
-                      ),
                       icon: category.icon,
                       color: category.color,
                       onTap: () => context.push(uri.toString()),
                     );
-                  }).toList(),
+                  },
                 );
               },
             ),

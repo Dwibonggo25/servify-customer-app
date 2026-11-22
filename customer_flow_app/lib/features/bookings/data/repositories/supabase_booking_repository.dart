@@ -166,6 +166,11 @@ final class SupabaseBookingRepository implements BookingRepository {
   }
 
   @override
+  Stream<List<BookingRecord>> watchStaffBookings() => _staffRemoteDataSource
+      .watchBookings()
+      .map((rows) => rows.map(_mapBooking).toList(growable: false));
+
+  @override
   Future<BookingRecord?> getStaffBooking(String id) async {
     final row = await _staffRemoteDataSource.fetchBooking(id);
     if (row == null) return null;

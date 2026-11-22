@@ -41,7 +41,7 @@ final class StaffDashboardPage extends StatelessWidget {
       builder: (context, state) {
         if (state.status == StaffBookingsStatus.loading &&
             state.bookings.isEmpty) {
-          return const _LoadingView();
+          return const _LoadingView(dashboardMode: true);
         }
         if (state.status == StaffBookingsStatus.failure &&
             state.bookings.isEmpty) {
@@ -55,6 +55,13 @@ final class StaffDashboardPage extends StatelessWidget {
             children: [
               if (state.status == StaffBookingsStatus.failure) ...[
                 _SyncErrorBanner(message: state.message),
+                const SizedBox(height: 16),
+              ],
+              if (state.realtimeFailed &&
+                  state.status != StaffBookingsStatus.failure) ...[
+                _SyncErrorBanner(
+                  message: context.tr(LanguageKeys.staffRealtimeDisconnected),
+                ),
                 const SizedBox(height: 16),
               ],
               _OpportunityBanner(
@@ -157,7 +164,7 @@ final class StaffBookingListPage extends StatelessWidget {
       builder: (context, state) {
         if (state.status == StaffBookingsStatus.loading &&
             state.bookings.isEmpty) {
-          return const _LoadingView();
+          return const _LoadingView(dashboardMode: false);
         }
         if (state.status == StaffBookingsStatus.failure &&
             state.bookings.isEmpty) {
@@ -172,6 +179,13 @@ final class StaffBookingListPage extends StatelessWidget {
             children: [
               if (state.status == StaffBookingsStatus.failure) ...[
                 _SyncErrorBanner(message: state.message),
+                const SizedBox(height: 16),
+              ],
+              if (state.realtimeFailed &&
+                  state.status != StaffBookingsStatus.failure) ...[
+                _SyncErrorBanner(
+                  message: context.tr(LanguageKeys.staffRealtimeDisconnected),
+                ),
                 const SizedBox(height: 16),
               ],
               _ListSummaryCard(
@@ -525,12 +539,255 @@ final class _EmptyCard extends StatelessWidget {
   );
 }
 
-final class _LoadingView extends StatelessWidget {
-  const _LoadingView();
+final class _LoadingView extends StatefulWidget {
+  const _LoadingView({required this.dashboardMode});
+
+  final bool dashboardMode;
 
   @override
-  Widget build(BuildContext context) =>
-      const Center(child: CircularProgressIndicator());
+  State<_LoadingView> createState() => _LoadingViewState();
+}
+
+final class _LoadingViewState extends State<_LoadingView>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1350),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    key: const Key('staff_loading_shimmer'),
+    animation: _controller,
+    builder: (context, child) {
+      final position = (_controller.value * 3) - 1.5;
+      return ShaderMask(
+        blendMode: BlendMode.modulate,
+        shaderCallback: (bounds) => LinearGradient(
+          begin: Alignment(position - 1, 0),
+          end: Alignment(position + 1, 0),
+          colors: const [
+            Color(0xFFE5E5EE),
+            Color(0xFFF8F8FC),
+            Color(0xFFE5E5EE),
+          ],
+          stops: const [0.25, 0.5, 0.75],
+        ).createShader(bounds),
+        child: child,
+      );
+    },
+    child: _StaffLoadingSkeleton(dashboardMode: widget.dashboardMode),
+  );
+}
+
+final class _StaffLoadingSkeleton extends StatelessWidget {
+  const _StaffLoadingSkeleton({required this.dashboardMode});
+
+  final bool dashboardMode;
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    physics: const NeverScrollableScrollPhysics(),
+    padding: const EdgeInsets.fromLTRB(20, 22, 20, 32),
+    children: dashboardMode
+        ? const [
+            _LoadingSummaryCard(),
+            SizedBox(height: 24),
+            _LoadingSectionTitle(),
+            SizedBox(height: 14),
+            _LoadingMetrics(),
+            SizedBox(height: 28),
+            _LoadingSectionTitle(hasAction: true),
+            SizedBox(height: 14),
+            _LoadingBookingCard(),
+            SizedBox(height: 12),
+            _LoadingBookingCard(),
+          ]
+        : const [
+            _LoadingSummaryCard(),
+            SizedBox(height: 22),
+            _LoadingSectionTitle(),
+            SizedBox(height: 14),
+            _LoadingBookingCard(),
+            SizedBox(height: 12),
+            _LoadingBookingCard(),
+            SizedBox(height: 12),
+            _LoadingBookingCard(),
+          ],
+  );
+}
+
+final class _LoadingSummaryCard extends StatelessWidget {
+  const _LoadingSummaryCard();
+
+  @override
+  Widget build(BuildContext context) => Container(
+    height: 94,
+    padding: const EdgeInsets.all(18),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(22),
+      border: Border.all(color: AppColors.border),
+    ),
+    child: const Row(
+      children: [
+        _StaffLoadingBlock(width: 52, height: 52, radius: 17),
+        SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _StaffLoadingBlock(width: 186, height: 16),
+              SizedBox(height: 9),
+              _StaffLoadingBlock(width: 224, height: 11),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+final class _LoadingSectionTitle extends StatelessWidget {
+  const _LoadingSectionTitle({this.hasAction = false});
+
+  final bool hasAction;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      const Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _StaffLoadingBlock(width: 146, height: 19),
+            SizedBox(height: 8),
+            _StaffLoadingBlock(width: 218, height: 11),
+          ],
+        ),
+      ),
+      if (hasAction)
+        const _StaffLoadingBlock(width: 56, height: 28, radius: 10),
+    ],
+  );
+}
+
+final class _LoadingMetrics extends StatelessWidget {
+  const _LoadingMetrics();
+
+  @override
+  Widget build(BuildContext context) => const Row(
+    children: [
+      Expanded(child: _LoadingMetricCard()),
+      SizedBox(width: 10),
+      Expanded(child: _LoadingMetricCard()),
+      SizedBox(width: 10),
+      Expanded(child: _LoadingMetricCard()),
+    ],
+  );
+}
+
+final class _LoadingMetricCard extends StatelessWidget {
+  const _LoadingMetricCard();
+
+  @override
+  Widget build(BuildContext context) => Container(
+    height: 126,
+    padding: const EdgeInsets.symmetric(vertical: 15),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: AppColors.border),
+    ),
+    child: const Column(
+      children: [
+        _StaffLoadingBlock(width: 38, height: 38, radius: 13),
+        SizedBox(height: 10),
+        _StaffLoadingBlock(width: 32, height: 20),
+        SizedBox(height: 7),
+        _StaffLoadingBlock(width: 54, height: 10),
+      ],
+    ),
+  );
+}
+
+final class _LoadingBookingCard extends StatelessWidget {
+  const _LoadingBookingCard();
+
+  @override
+  Widget build(BuildContext context) => Container(
+    height: 156,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(22),
+      border: Border.all(color: AppColors.border),
+    ),
+    child: const Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _StaffLoadingBlock(width: 54, height: 54, radius: 17),
+        SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _StaffLoadingBlock(width: 92, height: 11),
+              SizedBox(height: 9),
+              _StaffLoadingBlock(width: 174, height: 17),
+              SizedBox(height: 10),
+              _StaffLoadingBlock(width: double.infinity, height: 11),
+              SizedBox(height: 7),
+              _StaffLoadingBlock(width: 156, height: 11),
+              Spacer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _StaffLoadingBlock(width: 88, height: 13),
+                  _StaffLoadingBlock(width: 72, height: 28, radius: 10),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+final class _StaffLoadingBlock extends StatelessWidget {
+  const _StaffLoadingBlock({
+    required this.width,
+    required this.height,
+    this.radius = 7,
+  });
+
+  final double width;
+  final double height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: width,
+    height: height,
+    decoration: BoxDecoration(
+      color: const Color(0xFFE8E8F0),
+      borderRadius: BorderRadius.circular(radius),
+    ),
+  );
 }
 
 final class _ErrorView extends StatelessWidget {
